@@ -2,8 +2,10 @@
 
 import { useActiveContest } from '@/hooks/useContest';
 import { useEntries } from '@/hooks/useEntries';
+import { useCategories } from '@/hooks/useCategories';
 import Container from '@/components/layout/Container';
 import EntryGrid from '@/components/entries/EntryGrid';
+import VotingSection from '@/components/voting/VotingSection';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
@@ -11,6 +13,9 @@ import Link from 'next/link';
 export default function Home() {
   const { contest, loading: contestLoading } = useActiveContest();
   const { entries, loading: entriesLoading } = useEntries(contest?.id || null);
+  const { categories, loading: categoriesLoading } = useCategories(
+    contest?.id || null
+  );
 
   const loading = contestLoading || entriesLoading;
 
@@ -65,14 +70,20 @@ export default function Home() {
 
       <EntryGrid entries={entries} loading={entriesLoading} />
 
-      {entries.length > 0 && (
-        <div className="mt-12 text-center">
-          <p className="text-gray-600 mb-4">
-            Ready to vote for your favorites?
-          </p>
-          <p className="text-sm text-gray-500">
-            Voting section coming soon!
-          </p>
+      {entries.length > 0 && categories.length > 0 && (
+        <div className="mt-16">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-bold mb-2">Cast Your Votes</h2>
+            <p className="text-gray-600">
+              Vote for your favorite entry in each category
+            </p>
+          </div>
+
+          <VotingSection
+            contestId={contest!.id}
+            categories={categories}
+            entries={entries}
+          />
         </div>
       )}
     </Container>
