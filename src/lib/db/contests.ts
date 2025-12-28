@@ -17,6 +17,8 @@ import { Contest, ContestInput } from '@/types';
 const COLLECTION = 'contests';
 
 export async function getActiveContest(): Promise<Contest | null> {
+  if (!db) throw new Error('Firestore not initialized');
+
   const q = query(
     collection(db, COLLECTION),
     where('isActive', '==', true)
@@ -33,6 +35,7 @@ export async function getActiveContest(): Promise<Contest | null> {
 }
 
 export async function getContestById(id: string): Promise<Contest | null> {
+  if (!db) throw new Error('Firestore not initialized');
   const docRef = doc(db, COLLECTION, id);
   const docSnap = await getDoc(docRef);
 
@@ -44,6 +47,7 @@ export async function getContestById(id: string): Promise<Contest | null> {
 }
 
 export async function getAllContests(): Promise<Contest[]> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(collection(db, COLLECTION), orderBy('year', 'desc'));
   const snapshot = await getDocs(q);
 
@@ -54,6 +58,7 @@ export async function getAllContests(): Promise<Contest[]> {
 }
 
 export async function createContest(input: ContestInput): Promise<string> {
+  if (!db) throw new Error('Firestore not initialized');
   const docRef = await addDoc(collection(db, COLLECTION), {
     ...input,
     createdAt: serverTimestamp(),
@@ -67,6 +72,7 @@ export async function updateContest(
   id: string,
   updates: Partial<ContestInput>
 ): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized');
   const docRef = doc(db, COLLECTION, id);
   await updateDoc(docRef, {
     ...updates,
@@ -75,11 +81,12 @@ export async function updateContest(
 }
 
 export async function setActiveContest(id: string): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized');
   // First, deactivate all contests
   const allContests = await getAllContests();
   const batch = allContests.map(async (contest) => {
     if (contest.id !== id && contest.isActive) {
-      await updateDoc(doc(db, COLLECTION, contest.id), {
+      await updateDoc(doc(db!, COLLECTION, contest.id), {
         isActive: false,
         updatedAt: serverTimestamp(),
       });
@@ -89,7 +96,7 @@ export async function setActiveContest(id: string): Promise<void> {
   await Promise.all(batch);
 
   // Then activate the target contest
-  await updateDoc(doc(db, COLLECTION, id), {
+  await updateDoc(doc(db!, COLLECTION, id), {
     isActive: true,
     updatedAt: serverTimestamp(),
   });

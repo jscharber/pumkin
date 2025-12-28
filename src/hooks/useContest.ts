@@ -11,6 +11,11 @@ export function useActiveContest() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!db) {
+      setLoading(false);
+      return;
+    }
+
     const q = query(collection(db, 'contests'), where('isActive', '==', true));
 
     const unsubscribe = onSnapshot(

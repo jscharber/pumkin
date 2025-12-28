@@ -8,6 +8,8 @@ export async function uploadEntryImage(
   contestId: string,
   file: File
 ): Promise<{ url: string; path: string }> {
+  if (!storage) throw new Error('Firebase Storage not initialized');
+
   // Validate file size
   if (file.size > MAX_FILE_SIZE) {
     throw new Error('File size must be less than 10MB');
@@ -38,6 +40,7 @@ export async function uploadEntryImage(
 }
 
 export async function deleteEntryImage(path: string): Promise<void> {
+  if (!storage) throw new Error('Firebase Storage not initialized');
   const storageRef = ref(storage, path);
   await deleteObject(storageRef);
 }

@@ -18,6 +18,7 @@ export async function hasVoted(
   categoryId: string,
   visitorId: string
 ): Promise<boolean> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, COLLECTION),
     where('contestId', '==', contestId),
@@ -30,6 +31,7 @@ export async function hasVoted(
 }
 
 export async function submitVote(input: VoteInput): Promise<string> {
+  if (!db) throw new Error('Firestore not initialized');
   // Check if already voted
   const alreadyVoted = await hasVoted(
     input.contestId,
@@ -53,6 +55,7 @@ export async function getVotesForCategory(
   contestId: string,
   categoryId: string
 ): Promise<Vote[]> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, COLLECTION),
     where('contestId', '==', contestId),
@@ -71,6 +74,7 @@ export async function getVoteCountForEntry(
   categoryId: string,
   entryId: string
 ): Promise<number> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, COLLECTION),
     where('categoryId', '==', categoryId),
@@ -82,6 +86,7 @@ export async function getVoteCountForEntry(
 }
 
 export async function getTotalVotesForEntry(entryId: string): Promise<number> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(collection(db, COLLECTION), where('entryId', '==', entryId));
 
   const snapshot = await getCountFromServer(q);
@@ -108,6 +113,7 @@ export async function getUserVotes(
   contestId: string,
   visitorId: string
 ): Promise<Map<string, string>> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, COLLECTION),
     where('contestId', '==', contestId),

@@ -16,6 +16,7 @@ import { Entry } from '@/types';
 const COLLECTION = 'entries';
 
 export async function getEntriesForContest(contestId: string): Promise<Entry[]> {
+  if (!db) throw new Error('Firestore not initialized');
   const q = query(
     collection(db, COLLECTION),
     where('contestId', '==', contestId),
@@ -31,6 +32,7 @@ export async function getEntriesForContest(contestId: string): Promise<Entry[]> 
 }
 
 export async function getEntryById(id: string): Promise<Entry | null> {
+  if (!db) throw new Error('Firestore not initialized');
   const docRef = doc(db, COLLECTION, id);
   const docSnap = await getDoc(docRef);
 
@@ -49,6 +51,7 @@ export async function createEntry(
   imageUrl: string,
   imagePath: string
 ): Promise<string> {
+  if (!db) throw new Error('Firestore not initialized');
   const docRef = await addDoc(collection(db, COLLECTION), {
     contestId,
     entrantName,
@@ -63,6 +66,7 @@ export async function createEntry(
 }
 
 export async function deleteEntry(id: string): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized');
   const docRef = doc(db, COLLECTION, id);
   await deleteDoc(docRef);
 }

@@ -11,7 +11,7 @@ export function useEntries(contestId: string | null) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!contestId) {
+    if (!contestId || !db) {
       setEntries([]);
       setLoading(false);
       return;

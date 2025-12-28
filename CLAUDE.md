@@ -99,3 +99,4 @@ NEXT_PUBLIC_FIREBASE_APP_ID=
 7. Results pages (current + historical)
 8. Admin panel and authentication
 9. Polish and error handling
+- create git branches that match the feature being implmented, create the branch before changes start, commit the branch before moving on to the next feature

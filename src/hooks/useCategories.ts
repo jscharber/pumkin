@@ -11,7 +11,7 @@ export function useCategories(contestId: string | null) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!contestId) {
+    if (!contestId || !db) {
       setCategories([]);
       setLoading(false);
       return;
