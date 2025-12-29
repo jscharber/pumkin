@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup-firebase": "ts-node --project tsconfig.script.json scripts/setup-test-data.ts"
+    "setup-firebase": "ts-node --project tsconfig.script.json scripts/setup-test-data.ts",
+    "clean": "rm -rf .next",
+    "refresh": "npm run clean && npm run build && npm run dev"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.2.0",
