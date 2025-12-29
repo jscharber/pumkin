@@ -6,25 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-firebase": "ts-node --project tsconfig.script.json scripts/setup-test-data.ts"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^4.2.0",
+    "firebase": "^10.12.0",
     "next": "14.2.x",
     "react": "^18",
-    "react-dom": "^18",
-    "firebase": "^10.12.0",
-    "@fingerprintjs/fingerprintjs": "^4.2.0"
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@netlify/functions": "^2.6.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.0.0",
+    "dotenv": "^16.6.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.x",
-    "@netlify/functions": "^2.6.0"
+    "postcss": "^8",
+    "tailwindcss": "^3.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
   }
 }
