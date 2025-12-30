@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Entry } from '@/types';
+import { deleteEntryImage } from '../storage';
 
 const COLLECTION = 'entries';
 
@@ -69,8 +70,23 @@ export async function createEntry(
 
 export async function deleteEntry(id: string): Promise<void> {
   if (!db) throw new Error('Firestore not initialized');
+
+  // Get entry to retrieve image path
+  const entry = await getEntryById(id);
+
+  // Delete from Firestore
   const docRef = doc(db, COLLECTION, id);
   await deleteDoc(docRef);
+
+  // Delete image from storage if it exists
+  if (entry?.imagePath) {
+    try {
+      await deleteEntryImage(entry.imagePath);
+    } catch (error) {
+      console.error('Error deleting image from storage:', error);
+      // Don't throw - entry is already deleted from Firestore
+    }
+  }
 }
 
 export async function getRandomEntries(

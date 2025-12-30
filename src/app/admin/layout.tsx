@@ -105,7 +105,17 @@ export default function AdminLayout({
                       : 'text-gray-600 hover:text-primary'
                   }`}
                 >
-                  Inspiration
+                  Upload
+                </Link>
+                <Link
+                  href="/admin/inspiration/manage"
+                  className={`px-3 py-2 rounded transition-colors ${
+                    pathname === '/admin/inspiration/manage'
+                      ? 'bg-primary text-white'
+                      : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
+                  Manage
                 </Link>
               </nav>
             </div>

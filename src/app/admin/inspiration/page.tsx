@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Container from '@/components/layout/Container';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -13,6 +14,7 @@ import { uploadEntryImage } from '@/lib/storage';
 import { useToast } from '@/context/ToastContext';
 
 export default function InspirationAdminPage() {
+  const router = useRouter();
   const [contests, setContests] = useState<Contest[]>([]);
   const [selectedContestId, setSelectedContestId] = useState('');
   const [images, setImages] = useState<File[]>([]);
@@ -78,9 +80,8 @@ export default function InspirationAdminPage() {
         successCount === images.length ? 'success' : 'info'
       );
 
-      // Reset form
-      setImages([]);
-      setSelectedContestId('');
+      // Redirect to management page with pre-selected contest
+      router.push(`/admin/inspiration/manage?contest=${selectedContestId}`);
     } catch (error) {
       console.error('Error uploading inspiration images:', error);
       showToast('Failed to upload inspiration images', 'error');
