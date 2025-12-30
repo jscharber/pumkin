@@ -1,23 +1,61 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useActiveContest } from '@/hooks/useContest';
 import { useEntries } from '@/hooks/useEntries';
 import { useCategories } from '@/hooks/useCategories';
 import Container from '@/components/layout/Container';
 import EntryGrid from '@/components/entries/EntryGrid';
 import VotingSection from '@/components/voting/VotingSection';
+import YearFilter from '@/components/gallery/YearFilter';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { getAllContests, getContestById } from '@/lib/db/contests';
+import { Contest } from '@/types';
 
 export default function Home() {
-  const { contest, loading: contestLoading } = useActiveContest();
-  const { entries, loading: entriesLoading } = useEntries(contest?.id || null);
+  const { contest: activeContest, loading: contestLoading } = useActiveContest();
+  const [allContests, setAllContests] = useState<Contest[]>([]);
+  const [selectedContestId, setSelectedContestId] = useState<string | null>(null);
+  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+
+  const { entries, loading: entriesLoading } = useEntries(selectedContestId);
   const { categories, loading: categoriesLoading } = useCategories(
-    contest?.id || null
+    selectedContestId
   );
 
   const loading = contestLoading || entriesLoading;
+  const isViewingPastYear = selectedContestId !== activeContest?.id;
+
+  useEffect(() => {
+    const loadContests = async () => {
+      const contests = await getAllContests();
+      setAllContests(contests);
+    };
+    loadContests();
+  }, []);
+
+  useEffect(() => {
+    if (activeContest && !selectedContestId) {
+      setSelectedContestId(activeContest.id);
+      setSelectedContest(activeContest);
+    }
+  }, [activeContest, selectedContestId]);
+
+  useEffect(() => {
+    const loadSelectedContest = async () => {
+      if (selectedContestId) {
+        const contest = await getContestById(selectedContestId);
+        setSelectedContest(contest);
+      }
+    };
+    loadSelectedContest();
+  }, [selectedContestId]);
+
+  const handleYearChange = (contestId: string | null) => {
+    setSelectedContestId(contestId);
+  };
 
   if (contestLoading) {
     return (
@@ -30,7 +68,7 @@ export default function Home() {
     );
   }
 
-  if (!contest) {
+  if (!activeContest && !selectedContest) {
     return (
       <Container className="py-12">
         <Card className="max-w-2xl mx-auto p-8">
@@ -51,12 +89,24 @@ export default function Home() {
   return (
     <Container className="py-12">
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold mb-2">{contest.name}</h1>
+        <h1 className="text-4xl font-bold mb-2">
+          {selectedContest?.name || 'Pumpkin Carving Contest'}
+        </h1>
         <p className="text-gray-600 mb-6">
-          Browse all entries and vote for your favorites!
+          {isViewingPastYear
+            ? 'Browse past entries for inspiration!'
+            : 'Browse all entries and vote for your favorites!'}
         </p>
         <Link href="/submit">
-          <Button size="lg">Submit Your Entry</Button>
+          <Button
+            size="lg"
+            disabled={isViewingPastYear}
+            variant={isViewingPastYear ? 'outline' : 'primary'}
+          >
+            {isViewingPastYear
+              ? 'Submissions Closed for This Year'
+              : 'Submit Your Entry'}
+          </Button>
         </Link>
       </div>
 
@@ -65,12 +115,19 @@ export default function Home() {
           <h2 className="text-2xl font-semibold">
             Gallery ({entries.length} {entries.length === 1 ? 'Entry' : 'Entries'})
           </h2>
+          {allContests.length > 1 && (
+            <YearFilter
+              contests={allContests}
+              selectedContestId={selectedContestId}
+              onSelect={handleYearChange}
+            />
+          )}
         </div>
       </div>
 
       <EntryGrid entries={entries} loading={entriesLoading} />
 
-      {entries.length > 0 && categories.length > 0 && (
+      {!isViewingPastYear && entries.length > 0 && categories.length > 0 && (
         <div className="mt-16">
           <div className="mb-8 text-center">
             <h2 className="text-3xl font-bold mb-2">Cast Your Votes</h2>
@@ -80,7 +137,7 @@ export default function Home() {
           </div>
 
           <VotingSection
-            contestId={contest!.id}
+            contestId={selectedContestId!}
             categories={categories}
             entries={entries}
           />

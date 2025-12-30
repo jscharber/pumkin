@@ -14,6 +14,9 @@ export default function Header() {
               <Link href="/" className="hover:text-accent transition-colors">
                 Gallery
               </Link>
+              <Link href="/inspiration" className="hover:text-accent transition-colors">
+                Inspiration
+              </Link>
               <Link href="/submit" className="hover:text-accent transition-colors">
                 Submit Entry
               </Link>

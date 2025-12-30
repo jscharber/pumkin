@@ -97,6 +97,16 @@ export default function AdminLayout({
                 >
                   Entries
                 </Link>
+                <Link
+                  href="/admin/inspiration"
+                  className={`px-3 py-2 rounded transition-colors ${
+                    pathname === '/admin/inspiration'
+                      ? 'bg-primary text-white'
+                      : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
+                  Inspiration
+                </Link>
               </nav>
             </div>
             <div className="flex items-center gap-4">

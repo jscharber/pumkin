@@ -29,6 +29,7 @@ export interface Entry {
   description: string;
   imageUrl: string;
   imagePath: string;
+  isInspiration?: boolean; // True for past year inspiration images
   createdAt: Timestamp;
 }
 
