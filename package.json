@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "next lint",
     "setup-firebase": "ts-node --project tsconfig.script.json scripts/setup-test-data.ts",
+    "create-sample-data": "ts-node --project tsconfig.script.json scripts/create-2024-sample-data.ts",
+    "fix-placeholder-urls": "ts-node --project tsconfig.script.json scripts/fix-placeholder-urls.ts",
     "clean": "rm -rf .next",
     "refresh": "npm run clean && npm run build && npm run dev"
   },

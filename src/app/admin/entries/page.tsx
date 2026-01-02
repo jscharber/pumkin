@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
+import Modal from '@/components/ui/Modal';
+import EntryEditForm from '@/components/entries/EntryEditForm';
 import { Contest, Entry } from '@/types';
 import { getAllContests } from '@/lib/db/contests';
 import { getEntriesForContest, deleteEntry } from '@/lib/db/entries';
@@ -17,6 +19,7 @@ export default function EntriesPage() {
   const [selectedContestId, setSelectedContestId] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
 
   useEffect(() => {
     loadContests();
@@ -52,6 +55,19 @@ export default function EntriesPage() {
       console.error('Error loading entries:', error);
       showToast('Failed to load entries', 'error');
     }
+  };
+
+  const handleEdit = (entry: Entry) => {
+    setEditingEntry(entry);
+  };
+
+  const handleEditSuccess = () => {
+    setEditingEntry(null);
+    loadEntries();
+  };
+
+  const handleEditCancel = () => {
+    setEditingEntry(null);
   };
 
   const handleDelete = async (entry: Entry) => {
@@ -123,20 +139,44 @@ export default function EntriesPage() {
                     <p className="text-xs text-gray-500 mb-3">
                       Submitted: {entry.createdAt.toDate().toLocaleDateString()}
                     </p>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(entry)}
-                      className="w-full"
-                    >
-                      Delete Entry
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(entry)}
+                        className="flex-1"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDelete(entry)}
+                        className="flex-1"
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {editingEntry && (
+        <Modal
+          isOpen={true}
+          onClose={handleEditCancel}
+          title="Edit Entry"
+        >
+          <EntryEditForm
+            entry={editingEntry}
+            onSuccess={handleEditSuccess}
+            onCancel={handleEditCancel}
+          />
+        </Modal>
       )}
     </div>
   );

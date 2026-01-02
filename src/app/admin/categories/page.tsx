@@ -14,6 +14,7 @@ import {
   updateCategory,
   deleteCategory,
   reorderCategories,
+  copyCategoriesFromContest,
 } from '@/lib/db/categories';
 import { useToast } from '@/context/ToastContext';
 
@@ -29,6 +30,9 @@ export default function CategoriesPage() {
   const [formDescription, setFormDescription] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const [sourceContestId, setSourceContestId] = useState('');
+  const [copying, setCopying] = useState(false);
 
   useEffect(() => {
     loadContests();
@@ -118,6 +122,63 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleCopyCategories = async () => {
+    if (!sourceContestId) {
+      showToast('Please select a source contest', 'info');
+      return;
+    }
+
+    if (sourceContestId === selectedContestId) {
+      showToast('Cannot copy from the same contest', 'error');
+      return;
+    }
+
+    const sourceContest = contests.find((c) => c.id === sourceContestId);
+    const targetContest = contests.find((c) => c.id === selectedContestId);
+
+    if (!sourceContest || !targetContest) return;
+
+    const sourceCategories = await getCategoriesForContest(sourceContestId);
+
+    if (sourceCategories.length === 0) {
+      showToast('Source contest has no categories to copy', 'info');
+      return;
+    }
+
+    if (categories.length > 0) {
+      const confirmMsg = `Target contest already has ${categories.length} categor${
+        categories.length === 1 ? 'y' : 'ies'
+      }. Copy ${sourceCategories.length} categor${
+        sourceCategories.length === 1 ? 'y' : 'ies'
+      } from ${sourceContest.year} anyway?`;
+      if (!confirm(confirmMsg)) return;
+    } else {
+      const confirmMsg = `Copy ${sourceCategories.length} categor${
+        sourceCategories.length === 1 ? 'y' : 'ies'
+      } from ${sourceContest.year} to ${targetContest.year}?`;
+      if (!confirm(confirmMsg)) return;
+    }
+
+    setCopying(true);
+    try {
+      const copiedCount = await copyCategoriesFromContest(
+        sourceContestId,
+        selectedContestId
+      );
+      showToast(
+        `Successfully copied ${copiedCount} categor${copiedCount === 1 ? 'y' : 'ies'}`,
+        'success'
+      );
+      loadCategories();
+      setSourceContestId('');
+    } catch (error) {
+      console.error('Error copying categories:', error);
+      showToast('Failed to copy categories', 'error');
+    } finally {
+      setCopying(false);
+    }
+  };
+
   const resetForm = () => {
     setFormName('');
     setFormDescription('');
@@ -137,12 +198,45 @@ export default function CategoriesPage() {
       </div>
 
       <Card className="p-6">
-        <Select
-          label="Select Contest"
-          value={selectedContestId}
-          onChange={(e) => setSelectedContestId(e.target.value)}
-          options={contests.map((c) => ({ value: c.id, label: c.name }))}
-        />
+        <div className="space-y-4">
+          <Select
+            label="Select Contest"
+            value={selectedContestId}
+            onChange={(e) => setSelectedContestId(e.target.value)}
+            options={contests.map((c) => ({ value: c.id, label: c.name }))}
+          />
+
+          <div className="border-t pt-4">
+            <p className="text-sm font-medium text-gray-700 mb-3">
+              Copy Categories from Another Contest
+            </p>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Select
+                  label="Source Contest"
+                  value={sourceContestId}
+                  onChange={(e) => setSourceContestId(e.target.value)}
+                  options={[
+                    { value: '', label: 'Select a contest...' },
+                    ...contests
+                      .filter((c) => c.id !== selectedContestId)
+                      .map((c) => ({ value: c.id, label: `${c.year}` })),
+                  ]}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  onClick={handleCopyCategories}
+                  disabled={!sourceContestId || copying}
+                  variant="outline"
+                  loading={copying}
+                >
+                  Copy Categories
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </Card>
 
       {selectedContestId && (

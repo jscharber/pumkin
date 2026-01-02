@@ -92,3 +92,36 @@ export async function reorderCategories(
 
   await batch.commit();
 }
+
+export async function copyCategoriesFromContest(
+  sourceContestId: string,
+  targetContestId: string
+): Promise<number> {
+  if (!db) throw new Error('Firestore not initialized');
+
+  // Fetch all categories from source contest
+  const sourceCategories = await getCategoriesForContest(sourceContestId);
+
+  if (sourceCategories.length === 0) {
+    return 0;
+  }
+
+  // Create new categories in target contest using batch write
+  const batch = writeBatch(db);
+
+  sourceCategories.forEach((category) => {
+    const newDocRef = doc(collection(db!, COLLECTION));
+    batch.set(newDocRef, {
+      contestId: targetContestId,
+      name: category.name,
+      description: category.description,
+      order: category.order,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  });
+
+  await batch.commit();
+
+  return sourceCategories.length;
+}

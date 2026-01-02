@@ -94,7 +94,7 @@ export default function InspirationPage() {
         </p>
         {selectedContest && (
           <p className="text-sm text-gray-500">
-            Viewing: {selectedContest.year} - {selectedContest.name}
+            Viewing: {selectedContest.year}
           </p>
         )}
       </div>

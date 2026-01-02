@@ -7,11 +7,12 @@ import { useCategories } from '@/hooks/useCategories';
 import Container from '@/components/layout/Container';
 import EntryGrid from '@/components/entries/EntryGrid';
 import VotingSection from '@/components/voting/VotingSection';
+import TopThreeLeaderboard from '@/components/voting/TopThreeLeaderboard';
 import YearFilter from '@/components/gallery/YearFilter';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { getAllContests, getContestById } from '@/lib/db/contests';
+import { getAllContests, getContestById, getSubmissionStatus } from '@/lib/db/contests';
 import { Contest } from '@/types';
 
 export default function Home() {
@@ -27,6 +28,7 @@ export default function Home() {
 
   const loading = contestLoading || entriesLoading;
   const isViewingPastYear = selectedContestId !== activeContest?.id;
+  const submissionStatus = activeContest ? getSubmissionStatus(activeContest) : null;
 
   useEffect(() => {
     const loadContests = async () => {
@@ -86,6 +88,13 @@ export default function Home() {
     );
   }
 
+  const scrollToVoting = () => {
+    const votingSection = document.getElementById('voting-section');
+    if (votingSection) {
+      votingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <Container className="py-12">
       <div className="mb-8 text-center">
@@ -97,18 +106,40 @@ export default function Home() {
             ? 'Browse past entries for inspiration!'
             : 'Browse all entries and vote for your favorites!'}
         </p>
-        <Link href="/submit">
-          <Button
-            size="lg"
-            disabled={isViewingPastYear}
-            variant={isViewingPastYear ? 'outline' : 'primary'}
-          >
-            {isViewingPastYear
-              ? 'Submissions Closed for This Year'
-              : 'Submit Your Entry'}
-          </Button>
-        </Link>
+        <div className="flex gap-4 justify-center flex-wrap">
+          {!isViewingPastYear && entries.length > 0 && (
+            <Button
+              size="lg"
+              onClick={scrollToVoting}
+            >
+              Vote Now
+            </Button>
+          )}
+          <Link href="/submit">
+            <Button
+              size="lg"
+              disabled={isViewingPastYear}
+              variant={isViewingPastYear ? 'outline' : 'secondary'}
+            >
+              {isViewingPastYear
+                ? 'Submissions Closed for This Year'
+                : submissionStatus === 'not-started'
+                ? `Submissions Open ${activeContest?.submissionStart.toDate().toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}`
+                : submissionStatus === 'open'
+                ? 'Submit Your Entry'
+                : 'Submissions Closed'}
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Top 3 Leaderboard - Only show for active contest with entries */}
+      {!isViewingPastYear && entries.length > 0 && selectedContestId && (
+        <TopThreeLeaderboard contestId={selectedContestId} />
+      )}
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -128,7 +159,7 @@ export default function Home() {
       <EntryGrid entries={entries} loading={entriesLoading} />
 
       {!isViewingPastYear && entries.length > 0 && categories.length > 0 && (
-        <div className="mt-16">
+        <div id="voting-section" className="mt-16">
           <div className="mb-8 text-center">
             <h2 className="text-3xl font-bold mb-2">Cast Your Votes</h2>
             <p className="text-gray-600">

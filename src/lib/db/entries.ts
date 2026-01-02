@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  updateDoc,
   deleteDoc,
   query,
   where,
@@ -66,6 +67,24 @@ export async function createEntry(
   });
 
   return docRef.id;
+}
+
+export async function updateEntry(
+  id: string,
+  updates: Partial<{
+    entrantName: string;
+    title: string;
+    description: string;
+    imageUrl: string;
+    imagePath: string;
+  }>
+): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized');
+  const docRef = doc(db, COLLECTION, id);
+  await updateDoc(docRef, {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function deleteEntry(id: string): Promise<void> {

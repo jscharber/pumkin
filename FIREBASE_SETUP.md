@@ -145,7 +145,7 @@ I'll create a setup script for you in the next step.
 ## Step 10: Verify Setup
 
 1. Start your dev server: `npm run dev`
-2. Open http://localhost:3000
+2. Open http://localhost:3001
 3. You should see the active contest
 4. Try submitting an entry (if submission window is open)
 5. Try voting for entries

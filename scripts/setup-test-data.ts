@@ -103,7 +103,7 @@ async function setupTestData() {
     console.log('\n🎉 Test data setup complete!\n');
     console.log('Next steps:');
     console.log('  1. Start your dev server: npm run dev');
-    console.log('  2. Open http://localhost:3000');
+    console.log('  2. Open http://localhost:3001');
     console.log('  3. Submit test entries');
     console.log('  4. Try voting!\n');
 

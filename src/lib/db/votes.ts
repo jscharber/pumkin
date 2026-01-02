@@ -131,3 +131,35 @@ export async function getUserVotes(
 
   return userVotes;
 }
+
+export async function getTopEntriesByVotes(
+  contestId: string,
+  limit: number = 3
+): Promise<{ entryId: string; voteCount: number }[]> {
+  if (!db) throw new Error('Firestore not initialized');
+
+  // Get all votes for this contest
+  const q = query(
+    collection(db, COLLECTION),
+    where('contestId', '==', contestId)
+  );
+
+  const snapshot = await getDocs(q);
+
+  // Count votes per entry
+  const voteCounts = new Map<string, number>();
+
+  snapshot.docs.forEach((doc) => {
+    const vote = doc.data() as Vote;
+    const current = voteCounts.get(vote.entryId) || 0;
+    voteCounts.set(vote.entryId, current + 1);
+  });
+
+  // Convert to array and sort by vote count
+  const sorted = Array.from(voteCounts.entries())
+    .map(([entryId, voteCount]) => ({ entryId, voteCount }))
+    .sort((a, b) => b.voteCount - a.voteCount)
+    .slice(0, limit);
+
+  return sorted;
+}

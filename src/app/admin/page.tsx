@@ -4,7 +4,7 @@ import { useActiveContest } from '@/hooks/useContest';
 import { useEntries } from '@/hooks/useEntries';
 import { useCategories } from '@/hooks/useCategories';
 import Card from '@/components/ui/Card';
-import { isSubmissionOpen } from '@/lib/db/contests';
+import { getSubmissionStatus, getDaysUntilSubmissionStart, getDaysUntilSubmissionEnd } from '@/lib/db/contests';
 import { useState, useEffect } from 'react';
 import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -74,12 +74,9 @@ export default function AdminDashboard() {
     );
   }
 
-  const submissionWindowOpen = isSubmissionOpen(contest);
-  const submissionEnd = contest.submissionEnd.toDate();
-  const now = new Date();
-  const daysRemaining = Math.ceil(
-    (submissionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const submissionStatus = getSubmissionStatus(contest);
+  const daysUntilStart = getDaysUntilSubmissionStart(contest);
+  const daysUntilEnd = getDaysUntilSubmissionEnd(contest);
 
   return (
     <div className="space-y-6">
@@ -123,16 +120,29 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2">
             <div
               className={`w-3 h-3 rounded-full ${
-                submissionWindowOpen ? 'bg-green-500' : 'bg-red-500'
+                submissionStatus === 'open'
+                  ? 'bg-green-500'
+                  : submissionStatus === 'not-started'
+                  ? 'bg-yellow-500'
+                  : 'bg-red-500'
               }`}
             />
             <span className="text-lg font-semibold">
-              {submissionWindowOpen ? 'Open' : 'Closed'}
+              {submissionStatus === 'open'
+                ? 'Open'
+                : submissionStatus === 'not-started'
+                ? 'Opens Soon'
+                : 'Closed'}
             </span>
           </div>
-          {submissionWindowOpen && daysRemaining > 0 && (
+          {submissionStatus === 'not-started' && daysUntilStart > 0 && (
             <p className="text-sm text-gray-600 mt-1">
-              {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
+              Opens in {daysUntilStart} {daysUntilStart === 1 ? 'day' : 'days'}
+            </p>
+          )}
+          {submissionStatus === 'open' && daysUntilEnd > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              {daysUntilEnd} {daysUntilEnd === 1 ? 'day' : 'days'} remaining
             </p>
           )}
         </Card>

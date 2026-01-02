@@ -1,7 +1,7 @@
 'use client';
 
 import { useActiveContest } from '@/hooks/useContest';
-import { isSubmissionOpen } from '@/lib/db/contests';
+import { getSubmissionStatus, getDaysUntilSubmissionStart } from '@/lib/db/contests';
 import Container from '@/components/layout/Container';
 import EntryForm from '@/components/entries/EntryForm';
 import Card from '@/components/ui/Card';
@@ -54,9 +54,9 @@ export default function SubmitPage() {
     );
   }
 
-  const submissionWindowOpen = isSubmissionOpen(contest);
+  const submissionStatus = getSubmissionStatus(contest);
 
-  if (!submissionWindowOpen) {
+  if (submissionStatus !== 'open') {
     const startDate = contest.submissionStart.toDate().toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
@@ -68,6 +68,38 @@ export default function SubmitPage() {
       year: 'numeric',
     });
 
+    // Contest hasn't started yet
+    if (submissionStatus === 'not-started') {
+      const daysUntilStart = getDaysUntilSubmissionStart(contest);
+
+      return (
+        <Container className="py-12">
+          <Card className="max-w-2xl mx-auto p-8">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🎃</div>
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">
+                Submissions Open Soon
+              </h1>
+              <p className="text-gray-600 mb-2">
+                The submission window for {contest.name} opens on {startDate}.
+              </p>
+              <p className="text-sm text-gray-500">
+                {daysUntilStart > 0 && (
+                  <span className="font-semibold">
+                    Opens in {daysUntilStart} {daysUntilStart === 1 ? 'day' : 'days'}
+                  </span>
+                )}
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Submissions will be accepted from {startDate} to {endDate}.
+              </p>
+            </div>
+          </Card>
+        </Container>
+      );
+    }
+
+    // Contest has ended
     return (
       <Container className="py-12">
         <Card className="max-w-2xl mx-auto p-8">

@@ -8,8 +8,10 @@ import Container from '@/components/layout/Container';
 import Card from '@/components/ui/Card';
 import CategoryWinner from '@/components/results/CategoryWinner';
 import Leaderboard from '@/components/results/Leaderboard';
-import { CategoryResult, LeaderboardEntry } from '@/types';
+import { CategoryResult, LeaderboardEntry, Contest } from '@/types';
 import { calculateCategoryResults, calculateLeaderboard } from '@/lib/results';
+import { getAllContests } from '@/lib/db/contests';
+import Link from 'next/link';
 
 export default function ResultsPage() {
   const { contest, loading: contestLoading } = useActiveContest();
@@ -21,6 +23,15 @@ export default function ResultsPage() {
   const [categoryResults, setCategoryResults] = useState<CategoryResult[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [calculating, setCalculating] = useState(false);
+  const [allContests, setAllContests] = useState<Contest[]>([]);
+
+  useEffect(() => {
+    const loadContests = async () => {
+      const contests = await getAllContests();
+      setAllContests(contests);
+    };
+    loadContests();
+  }, []);
 
   useEffect(() => {
     if (!contest || !categories.length || !entries.length) {
@@ -81,12 +92,32 @@ export default function ResultsPage() {
     );
   }
 
+  const pastContests = allContests.filter((c) => c.id !== contest.id);
+
   if (entries.length === 0) {
     return (
       <Container className="py-12">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">{contest.name} - Results</h1>
         </div>
+
+        {pastContests.length > 0 && (
+          <Card className="mb-8 p-6">
+            <h3 className="text-lg font-semibold mb-4">Past Years</h3>
+            <div className="flex flex-wrap gap-2">
+              {pastContests.map((pastContest) => (
+                <Link
+                  key={pastContest.id}
+                  href={`/results/${pastContest.year}`}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 hover:text-gray-900 font-medium"
+                >
+                  {pastContest.year}
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
+
         <Card className="max-w-2xl mx-auto p-8">
           <div className="text-center">
             <div className="text-6xl mb-4">🎃</div>
@@ -111,6 +142,23 @@ export default function ResultsPage() {
           {categories.length} {categories.length === 1 ? 'category' : 'categories'}
         </p>
       </div>
+
+      {pastContests.length > 0 && (
+        <Card className="mb-8 p-6">
+          <h3 className="text-lg font-semibold mb-4">Past Years</h3>
+          <div className="flex flex-wrap gap-2">
+            {pastContests.map((pastContest) => (
+              <Link
+                key={pastContest.id}
+                href={`/results/${pastContest.year}`}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 hover:text-gray-900 font-medium"
+              >
+                {pastContest.year}
+              </Link>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {loading ? (
         <div className="space-y-6">

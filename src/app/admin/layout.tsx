@@ -98,6 +98,16 @@ export default function AdminLayout({
                   Entries
                 </Link>
                 <Link
+                  href="/admin/submit"
+                  className={`px-3 py-2 rounded transition-colors ${
+                    pathname === '/admin/submit'
+                      ? 'bg-primary text-white'
+                      : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
+                  Test Submit
+                </Link>
+                <Link
                   href="/admin/inspiration"
                   className={`px-3 py-2 rounded transition-colors ${
                     pathname === '/admin/inspiration'

@@ -62,7 +62,7 @@ Quick checklist for configuring Firebase. Check off each item as you complete it
 
 ### Start & Test
 - [ ] Run `npm run dev`
-- [ ] Open http://localhost:3000
+- [ ] Open http://localhost:3001
 - [ ] Verify contest appears
 - [ ] Submit a test entry
 - [ ] Try voting

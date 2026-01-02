@@ -127,7 +127,7 @@ You should see:
 npm run dev
 ```
 
-Open http://localhost:3000 in your browser.
+Open http://localhost:3001 in your browser.
 
 You should see:
 - **2024 Pumpkin Carving Contest** header

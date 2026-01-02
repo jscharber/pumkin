@@ -24,7 +24,7 @@ export default function YearFilter({
       : []),
     ...contests.map((contest) => ({
       value: contest.id,
-      label: `${contest.year} - ${contest.name}`,
+      label: `${contest.year}`,
     })),
   ];
 

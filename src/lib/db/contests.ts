@@ -109,3 +109,46 @@ export function isSubmissionOpen(contest: Contest): boolean {
     now.toMillis() <= contest.submissionEnd.toMillis()
   );
 }
+
+export type SubmissionStatus = 'not-started' | 'open' | 'closed';
+
+export function getSubmissionStatus(contest: Contest): SubmissionStatus {
+  const now = Timestamp.now();
+  const nowMillis = now.toMillis();
+  const startMillis = contest.submissionStart.toMillis();
+  const endMillis = contest.submissionEnd.toMillis();
+
+  if (nowMillis < startMillis) {
+    return 'not-started';
+  } else if (nowMillis >= startMillis && nowMillis <= endMillis) {
+    return 'open';
+  } else {
+    return 'closed';
+  }
+}
+
+export function getDaysUntilSubmissionStart(contest: Contest): number {
+  const now = Timestamp.now();
+  const startMillis = contest.submissionStart.toMillis();
+  const nowMillis = now.toMillis();
+
+  if (nowMillis >= startMillis) {
+    return 0;
+  }
+
+  const msUntilStart = startMillis - nowMillis;
+  return Math.ceil(msUntilStart / (1000 * 60 * 60 * 24));
+}
+
+export function getDaysUntilSubmissionEnd(contest: Contest): number {
+  const now = Timestamp.now();
+  const endMillis = contest.submissionEnd.toMillis();
+  const nowMillis = now.toMillis();
+
+  if (nowMillis >= endMillis) {
+    return 0;
+  }
+
+  const msUntilEnd = endMillis - nowMillis;
+  return Math.ceil(msUntilEnd / (1000 * 60 * 60 * 24));
+}

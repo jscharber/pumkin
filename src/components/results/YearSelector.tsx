@@ -22,7 +22,7 @@ export default function YearSelector({
         onChange={(e) => onSelect(e.target.value)}
         options={contests.map((contest) => ({
           value: contest.id,
-          label: `${contest.year} - ${contest.name}`,
+          label: `${contest.year}`,
         }))}
       />
     </div>
