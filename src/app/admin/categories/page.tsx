@@ -34,6 +34,10 @@ export default function CategoriesPage() {
   const [sourceContestId, setSourceContestId] = useState('');
   const [copying, setCopying] = useState(false);
 
+  const [reordering, setReordering] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
   useEffect(() => {
     loadContests();
   }, []);
@@ -76,11 +80,10 @@ export default function CategoriesPage() {
 
     try {
       if (editingId) {
+        // Leave order unchanged so editing doesn't move the category
         await updateCategory(editingId, {
-          contestId: selectedContestId,
           name: formName,
           description: formDescription,
-          order: 0,
         });
         showToast('Category updated', 'success');
       } else {
@@ -88,7 +91,10 @@ export default function CategoriesPage() {
           contestId: selectedContestId,
           name: formName,
           description: formDescription,
-          order: categories.length,
+          order:
+            categories.length > 0
+              ? Math.max(...categories.map((c) => c.order)) + 1
+              : 0,
         });
         showToast('Category created', 'success');
       }
@@ -120,6 +126,45 @@ export default function CategoriesPage() {
       console.error('Error deleting category:', error);
       showToast('Failed to delete category', 'error');
     }
+  };
+
+  const moveCategory = async (fromIndex: number, toIndex: number) => {
+    if (
+      reordering ||
+      fromIndex === toIndex ||
+      toIndex < 0 ||
+      toIndex >= categories.length
+    ) {
+      return;
+    }
+
+    const previous = categories;
+    const reordered = [...categories];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+
+    // Optimistic update; renumber so orders stay 0..n-1 with no gaps or duplicates
+    const renumbered = reordered.map((c, index) => ({ ...c, order: index }));
+    setCategories(renumbered);
+    setReordering(true);
+
+    try {
+      await reorderCategories(renumbered.map(({ id, order }) => ({ id, order })));
+    } catch (error) {
+      console.error('Error reordering categories:', error);
+      setCategories(previous);
+      showToast('Failed to save new order', 'error');
+    } finally {
+      setReordering(false);
+    }
+  };
+
+  const handleDrop = (toIndex: number) => {
+    if (draggedIndex !== null) {
+      moveCategory(draggedIndex, toIndex);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleCopyCategories = async () => {
@@ -274,15 +319,80 @@ export default function CategoriesPage() {
             </Card>
           )}
 
+          {categories.length > 1 && (
+            <p className="text-sm text-gray-500">
+              Drag categories or use the arrows to set the order they appear in
+              voting and results.
+            </p>
+          )}
+
           <div className="space-y-4">
-            {categories.map((category) => (
-              <Card key={category.id} className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-semibold">{category.name}</h3>
-                    <p className="text-sm text-gray-600">{category.description}</p>
+            {categories.map((category, index) => (
+              <div
+                key={category.id}
+                draggable={!reordering}
+                onDragStart={(e) => {
+                  setDraggedIndex(index);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverIndex(index);
+                }}
+                onDragLeave={() => setDragOverIndex(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(index);
+                }}
+                onDragEnd={() => {
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
+                className={`rounded-lg transition-opacity ${
+                  draggedIndex === index ? 'opacity-50' : ''
+                } ${
+                  dragOverIndex === index && draggedIndex !== index
+                    ? 'ring-2 ring-primary'
+                    : ''
+                }`}
+              >
+              <Card className="p-6">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="cursor-grab select-none text-gray-400 text-xl leading-7"
+                      aria-hidden="true"
+                      title="Drag to reorder"
+                    >
+                      ⠿
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-semibold">
+                        <span className="text-gray-400 mr-2">{index + 1}.</span>
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">{category.description}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => moveCategory(index, index - 1)}
+                      disabled={index === 0 || reordering}
+                      aria-label={`Move ${category.name} up`}
+                    >
+                      ↑
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => moveCategory(index, index + 1)}
+                      disabled={index === categories.length - 1 || reordering}
+                      aria-label={`Move ${category.name} down`}
+                    >
+                      ↓
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -300,6 +410,7 @@ export default function CategoriesPage() {
                   </div>
                 </div>
               </Card>
+              </div>
             ))}
           </div>
         </>
