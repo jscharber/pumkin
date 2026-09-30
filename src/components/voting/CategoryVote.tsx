@@ -86,9 +86,14 @@ export default function CategoryVote({
                 </div>
                 <div className="p-2 bg-white">
                   <p className="text-xs font-medium truncate">{entry.title}</p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {entry.entrantName}
-                  </p>
+                  {entry.description && (
+                    <p
+                      className="text-xs text-gray-500 truncate"
+                      title={entry.description}
+                    >
+                      {entry.description}
+                    </p>
+                  )}
                 </div>
               </button>
             ))}
