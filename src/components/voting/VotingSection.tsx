@@ -63,8 +63,13 @@ export default function VotingSection({
 
       showToast('Vote recorded successfully!', 'success');
     } catch (error) {
+      // Firestore rules reject votes outside the voting window
       const message =
-        error instanceof Error ? error.message : 'Failed to submit vote';
+        (error as { code?: string })?.code === 'permission-denied'
+          ? 'Voting is not open right now.'
+          : error instanceof Error
+          ? error.message
+          : 'Failed to submit vote';
       showToast(message, 'error');
       throw error;
     }

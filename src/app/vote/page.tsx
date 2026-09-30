@@ -5,16 +5,17 @@ import { useCategories } from '@/hooks/useCategories';
 import { useEntries } from '@/hooks/useEntries';
 import Container from '@/components/layout/Container';
 import VotingSection from '@/components/voting/VotingSection';
-import TopThreeLeaderboard from '@/components/voting/TopThreeLeaderboard';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { isSubmissionOpen, getSubmissionStatus } from '@/lib/db/contests';
+import { useVotingStatus } from '@/hooks/useVotingStatus';
+import { formatDateTimeInZone, getContestTimeZone } from '@/lib/timezone';
 
 export default function VotePage() {
   const { contest, loading: contestLoading, error: contestError } = useActiveContest();
   const { categories, loading: categoriesLoading } = useCategories(contest?.id || '');
   const { entries, loading: entriesLoading } = useEntries(contest?.id || '');
+  const votingStatus = useVotingStatus(contest);
 
   const loading = contestLoading || categoriesLoading || entriesLoading;
 
@@ -73,6 +74,65 @@ export default function VotePage() {
     );
   }
 
+  const timeZone = getContestTimeZone(contest);
+
+  if (votingStatus === 'not-started' && contest.votingStart) {
+    return (
+      <Container className="py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold mb-2">{contest.name}</h1>
+          </div>
+
+          <Card className="p-8">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🎃</div>
+              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                Whoa, hold your pumpkins! 🎃 We love how excited you are, but
+                the voting booth isn&apos;t open just yet. Mark your
+                calendar&mdash;voting officially kicks off on{' '}
+                <span className="font-semibold">
+                  {formatDateTimeInZone(contest.votingStart.toDate(), timeZone)}
+                </span>
+                !
+              </p>
+              <Link href="/gallery">
+                <Button>Browse the Gallery</Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </Container>
+    );
+  }
+
+  if (votingStatus === 'closed') {
+    return (
+      <Container className="py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold mb-2">{contest.name}</h1>
+          </div>
+
+          <Card className="p-8">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🗳️</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                Voting Has Closed
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Thanks to everyone who voted! The results are in.
+              </p>
+              <Link href="/results">
+                <Button>See the Results</Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </Container>
+    );
+  }
+
   // Filter out inspiration entries (only show competition entries)
   const competitionEntries = entries.filter((entry) => !entry.isInspiration);
 
@@ -104,9 +164,6 @@ export default function VotePage() {
     );
   }
 
-  const submissionStatus = getSubmissionStatus(contest);
-  const canSubmit = isSubmissionOpen(contest);
-
   return (
     <Container className="py-12">
       <div className="max-w-6xl mx-auto">
@@ -114,15 +171,21 @@ export default function VotePage() {
         <div className="mb-8 text-center">
           <h1 className="text-5xl font-bold mb-2">{contest.name}</h1>
           <p className="text-xl text-gray-600">Cast Your Votes!</p>
-          {canSubmit && (
-            <p className="text-sm text-gray-500 mt-2">
-              Voting is open! Choose your favorite pumpkin in each category.
-            </p>
-          )}
+          <p className="max-w-3xl mx-auto mt-4 text-lg text-gray-700 leading-relaxed">
+            Pick your #1 favorite in each category! 🗳️ Pass the spotlight to
+            your fellow pumpkin artists&mdash;or vote for yourself if you just
+            can&apos;t resist!
+            {contest.votingEnd && (
+              <>
+                {' '}Check back on{' '}
+                <span className="font-semibold">
+                  {formatDateTimeInZone(contest.votingEnd.toDate(), timeZone)}
+                </span>{' '}
+                to see who claims ultimate bragging rights! 🎉
+              </>
+            )}
+          </p>
         </div>
-
-        {/* Top 3 Leaderboard */}
-        <TopThreeLeaderboard contestId={contest.id} />
 
         {/* Voting Instructions */}
         <div className="mb-6 bg-orange-50 border-l-4 border-orange-400 p-4 rounded">

@@ -36,9 +36,16 @@ service cloud.firestore {
     }
 
     // Votes: public read, public create (one per visitor/category), no update/delete
+    // Voting window: contests without voting dates (created before they existed) stay open
+    function isVotingOpen(contestId) {
+      let contest = get(/databases/$(database)/documents/contests/$(contestId)).data;
+      return !('votingStart' in contest) || !('votingEnd' in contest) ||
+             (request.time >= contest.votingStart && request.time <= contest.votingEnd);
+    }
+
     match /votes/{voteId} {
       allow read: if true;
-      allow create: if true;  // Duplicate prevention in app
+      allow create: if isVotingOpen(request.resource.data.contestId);  // Duplicate prevention in app
       allow update, delete: if false;
     }
   }
