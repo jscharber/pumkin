@@ -3,11 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useActiveContest } from '@/hooks/useContest';
 import { useEntries } from '@/hooks/useEntries';
-import { useCategories } from '@/hooks/useCategories';
 import Container from '@/components/layout/Container';
 import EntryGrid from '@/components/entries/EntryGrid';
-import VotingSection from '@/components/voting/VotingSection';
-import TopThreeLeaderboard from '@/components/voting/TopThreeLeaderboard';
 import YearFilter from '@/components/gallery/YearFilter';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -22,9 +19,6 @@ export default function GalleryPage() {
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
 
   const { entries, loading: entriesLoading } = useEntries(selectedContestId);
-  const { categories, loading: categoriesLoading } = useCategories(
-    selectedContestId
-  );
 
   const loading = contestLoading || entriesLoading;
   const isViewingPastYear = selectedContestId !== activeContest?.id;
@@ -88,13 +82,6 @@ export default function GalleryPage() {
     );
   }
 
-  const scrollToVoting = () => {
-    const votingSection = document.getElementById('voting-section');
-    if (votingSection) {
-      votingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   return (
     <Container className="py-12">
       <div className="mb-8 text-center">
@@ -104,17 +91,9 @@ export default function GalleryPage() {
         <p className="text-gray-600 mb-6">
           {isViewingPastYear
             ? 'Browse past entries for inspiration!'
-            : 'Browse all entries and vote for your favorites!'}
+            : 'Browse all of this year\'s entries!'}
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          {!isViewingPastYear && entries.length > 0 && (
-            <Button
-              size="lg"
-              onClick={scrollToVoting}
-            >
-              Vote Now
-            </Button>
-          )}
           <Link href="/submit">
             <Button
               size="lg"
@@ -136,11 +115,6 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* Top 3 Leaderboard - Only show for active contest with entries */}
-      {!isViewingPastYear && entries.length > 0 && selectedContestId && (
-        <TopThreeLeaderboard contestId={selectedContestId} />
-      )}
-
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-semibold">
@@ -157,23 +131,6 @@ export default function GalleryPage() {
       </div>
 
       <EntryGrid entries={entries} loading={entriesLoading} />
-
-      {!isViewingPastYear && entries.length > 0 && categories.length > 0 && (
-        <div id="voting-section" className="mt-16">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-bold mb-2">Cast Your Votes</h2>
-            <p className="text-gray-600">
-              Vote for your favorite entry in each category
-            </p>
-          </div>
-
-          <VotingSection
-            contestId={selectedContestId!}
-            categories={categories}
-            entries={entries}
-          />
-        </div>
-      )}
     </Container>
   );
 }

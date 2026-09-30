@@ -70,13 +70,6 @@ export default function EntryDetail({ entry, onClose }: EntryDetailProps) {
         </div>
 
         <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              Carved By
-            </h3>
-            <p className="text-lg">{entry.entrantName}</p>
-          </div>
-
           {entry.description && (
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
