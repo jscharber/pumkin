@@ -9,6 +9,8 @@ interface ImageUploadProps {
   error?: string;
   maxSize?: number; // in MB
   acceptedTypes?: string[];
+  label?: string;
+  required?: boolean;
 }
 
 export default function ImageUpload({
@@ -16,6 +18,8 @@ export default function ImageUpload({
   error,
   maxSize = 10,
   acceptedTypes = ['image/jpeg', 'image/png', 'image/webp'],
+  label = 'Pumpkin Image',
+  required = true,
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>('');
@@ -72,7 +76,7 @@ export default function ImageUpload({
   return (
     <div className="w-full">
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Pumpkin Image <span className="text-red-500">*</span>
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
 
       <input

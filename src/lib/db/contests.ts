@@ -152,3 +152,21 @@ export function getDaysUntilSubmissionEnd(contest: Contest): number {
   const msUntilEnd = endMillis - nowMillis;
   return Math.ceil(msUntilEnd / (1000 * 60 * 60 * 24));
 }
+
+export type VotingStatus = 'not-scheduled' | 'not-started' | 'open' | 'closed';
+
+export function getVotingStatus(contest: Contest): VotingStatus {
+  if (!contest.votingStart || !contest.votingEnd) {
+    return 'not-scheduled';
+  }
+
+  const nowMillis = Timestamp.now().toMillis();
+
+  if (nowMillis < contest.votingStart.toMillis()) {
+    return 'not-started';
+  } else if (nowMillis <= contest.votingEnd.toMillis()) {
+    return 'open';
+  } else {
+    return 'closed';
+  }
+}

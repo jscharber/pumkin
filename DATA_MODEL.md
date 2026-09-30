@@ -12,6 +12,14 @@ interface Contest {
   name: string;            // "2024 Pumpkin Carving Contest"
   submissionStart: Timestamp;
   submissionEnd: Timestamp;
+  votingStart?: Timestamp;
+  votingEnd?: Timestamp;
+  timeZone?: string;       // IANA zone the dates are entered/shown in, e.g. "America/Chicago"
+  headerImageUrl?: string | null;  // Home page header picture (Storage URL)
+  headerImagePath?: string | null; // Storage path for deletion (contests/{id}/...)
+  introMessage?: string;   // Shown on the Home page
+  instructionsAndRules?: string; // Shown on the Home page
+  contactInfo?: string;    // Shown on the Home page
   isActive: boolean;       // Only one should be true
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -25,6 +33,14 @@ interface Contest {
   "name": "2024 Pumpkin Carving Contest",
   "submissionStart": "2024-10-01T00:00:00Z",
   "submissionEnd": "2024-10-20T23:59:59Z",
+  "votingStart": "2024-10-21T00:00:00Z",
+  "votingEnd": "2024-10-31T23:59:59Z",
+  "timeZone": "America/Chicago",
+  "headerImageUrl": "https://firebasestorage.googleapis.com/...",
+  "headerImagePath": "contests/abc123/header_1727712000000.jpg",
+  "introMessage": "Welcome to our annual pumpkin carving contest!",
+  "instructionsAndRules": "One entry per household...",
+  "contactInfo": "Questions? Email pumpkins@example.com",
   "isActive": true,
   "createdAt": "2024-09-15T12:00:00Z",
   "updatedAt": "2024-09-15T12:00:00Z"

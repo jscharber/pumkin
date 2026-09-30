@@ -39,6 +39,30 @@ export async function uploadEntryImage(
   return { url, path };
 }
 
+export async function uploadContestHeaderImage(
+  contestId: string,
+  file: File
+): Promise<{ url: string; path: string }> {
+  if (!storage) throw new Error('Firebase Storage not initialized');
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('File size must be less than 10MB');
+  }
+
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('Only JPG, PNG, and WebP images are allowed');
+  }
+
+  const extension = file.name.split('.').pop();
+  const path = `contests/${contestId}/header_${Date.now()}.${extension}`;
+  const storageRef = ref(storage, path);
+
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+
+  return { url, path };
+}
+
 export async function deleteEntryImage(path: string): Promise<void> {
   if (!storage) throw new Error('Firebase Storage not initialized');
   const storageRef = ref(storage, path);

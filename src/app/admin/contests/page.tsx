@@ -8,6 +8,7 @@ import ContestForm from '@/components/admin/ContestForm';
 import { Contest } from '@/types';
 import { getAllContests, setActiveContest } from '@/lib/db/contests';
 import { useToast } from '@/context/ToastContext';
+import { DEFAULT_TIME_ZONE, formatDateTimeInZone } from '@/lib/timezone';
 
 export default function ContestsPage() {
   const { showToast } = useToast();
@@ -116,8 +117,19 @@ export default function ContestsPage() {
                     </p>
                     <p>
                       <span className="font-medium">Submission Window:</span>{' '}
-                      {contest.submissionStart.toDate().toLocaleDateString()} -{' '}
-                      {contest.submissionEnd.toDate().toLocaleDateString()}
+                      {formatDateTimeInZone(contest.submissionStart.toDate(), contest.timeZone || DEFAULT_TIME_ZONE)} -{' '}
+                      {formatDateTimeInZone(contest.submissionEnd.toDate(), contest.timeZone || DEFAULT_TIME_ZONE)}
+                    </p>
+                    <p>
+                      <span className="font-medium">Voting Window:</span>{' '}
+                      {contest.votingStart && contest.votingEnd ? (
+                        <>
+                          {formatDateTimeInZone(contest.votingStart.toDate(), contest.timeZone || DEFAULT_TIME_ZONE)} -{' '}
+                          {formatDateTimeInZone(contest.votingEnd.toDate(), contest.timeZone || DEFAULT_TIME_ZONE)}
+                        </>
+                      ) : (
+                        <span className="text-amber-700">Not set - edit this contest to add voting dates</span>
+                      )}
                     </p>
                   </div>
                 </div>

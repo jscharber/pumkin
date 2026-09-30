@@ -6,6 +6,14 @@ export interface Contest {
   name: string;
   submissionStart: Timestamp;
   submissionEnd: Timestamp;
+  votingStart?: Timestamp;
+  votingEnd?: Timestamp;
+  timeZone?: string; // IANA zone (e.g. "America/Chicago") the dates are entered and displayed in
+  headerImageUrl?: string | null; // Home page header picture
+  headerImagePath?: string | null; // Storage path for deletion
+  introMessage?: string;
+  instructionsAndRules?: string;
+  contactInfo?: string;
   isActive: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
