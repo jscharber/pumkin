@@ -88,8 +88,22 @@ interface Entry {
   entrantName: string;     // "John Smith"
   title: string;           // "Spooky Steve"
   description: string;     // Optional details
-  imageUrl: string;        // Firebase Storage URL
+  imageUrl: string;        // Firebase Storage URL (main photo, same as images[0])
   imagePath: string;       // Storage path for deletion
+  images?: { url: string; path: string }[]; // All photos in order, max 3
+  createdAt: Timestamp;
+}
+```
+
+### entryContacts
+Optional contact info from the submit form. Document ID matches the entry ID.
+Kept out of `entries` because entries are publicly readable; only admins can read these.
+
+```typescript
+interface EntryContact {
+  id: string;              // Same as the entry ID
+  contestId: string;
+  contactInfo: string;     // Max 500 characters
   createdAt: Timestamp;
 }
 ```

@@ -29,6 +29,11 @@ export interface Category {
   updatedAt: Timestamp;
 }
 
+export interface EntryImage {
+  url: string;
+  path: string; // Storage path for deletion
+}
+
 export interface Entry {
   id: string;
   contestId: string;
@@ -37,7 +42,16 @@ export interface Entry {
   description: string;
   imageUrl: string;
   imagePath: string;
+  images?: EntryImage[]; // All photos in display order (max 3); imageUrl/imagePath mirror images[0]
   isInspiration?: boolean; // True for past year inspiration images
+  createdAt: Timestamp;
+}
+
+// Stored separately from entries so it is only readable by admins
+export interface EntryContact {
+  id: string; // Same as the entry ID
+  contestId: string;
+  contactInfo: string;
   createdAt: Timestamp;
 }
 

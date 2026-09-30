@@ -7,10 +7,14 @@ import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import EntryEditForm from '@/components/entries/EntryEditForm';
-import { Contest, Entry } from '@/types';
+import { Contest, Entry, EntryContact } from '@/types';
 import { getAllContests } from '@/lib/db/contests';
-import { getEntriesForContest, deleteEntry } from '@/lib/db/entries';
-import { deleteEntryImage } from '@/lib/storage';
+import {
+  getEntriesForContest,
+  getEntryContactsForContest,
+  getEntryImages,
+  deleteEntry,
+} from '@/lib/db/entries';
 import { useToast } from '@/context/ToastContext';
 
 export default function EntriesPage() {
@@ -18,6 +22,7 @@ export default function EntriesPage() {
   const [contests, setContests] = useState<Contest[]>([]);
   const [selectedContestId, setSelectedContestId] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [contacts, setContacts] = useState<Record<string, EntryContact>>({});
   const [loading, setLoading] = useState(true);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
 
@@ -49,8 +54,12 @@ export default function EntriesPage() {
 
   const loadEntries = async () => {
     try {
-      const data = await getEntriesForContest(selectedContestId);
+      const [data, contactData] = await Promise.all([
+        getEntriesForContest(selectedContestId),
+        getEntryContactsForContest(selectedContestId),
+      ]);
       setEntries(data);
+      setContacts(contactData);
     } catch (error) {
       console.error('Error loading entries:', error);
       showToast('Failed to load entries', 'error');
@@ -74,8 +83,8 @@ export default function EntriesPage() {
     if (!confirm(`Delete "${entry.title}" by ${entry.entrantName}?`)) return;
 
     try {
+      // Also deletes the entry's photos and contact info
       await deleteEntry(entry.id);
-      await deleteEntryImage(entry.imagePath);
       showToast('Entry deleted', 'success');
       loadEntries();
     } catch (error) {
@@ -134,6 +143,17 @@ export default function EntriesPage() {
                     {entry.description && (
                       <p className="text-sm text-gray-700 mb-3">
                         {entry.description}
+                      </p>
+                    )}
+                    {contacts[entry.id]?.contactInfo && (
+                      <p className="text-sm text-gray-700 mb-3 whitespace-pre-line">
+                        <span className="font-medium">Contact:</span>{' '}
+                        {contacts[entry.id].contactInfo}
+                      </p>
+                    )}
+                    {getEntryImages(entry).length > 1 && (
+                      <p className="text-xs text-gray-500 mb-1">
+                        {getEntryImages(entry).length} photos
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mb-3">

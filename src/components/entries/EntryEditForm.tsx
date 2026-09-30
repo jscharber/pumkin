@@ -7,8 +7,8 @@ import Button from '@/components/ui/Button';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { useToast } from '@/context/ToastContext';
 import { uploadEntryImage, resizeImage, deleteEntryImage } from '@/lib/storage';
-import { updateEntry } from '@/lib/db/entries';
-import { Entry } from '@/types';
+import { updateEntry, getEntryImages } from '@/lib/db/entries';
+import { Entry, EntryImage } from '@/types';
 import Image from 'next/image';
 
 interface EntryEditFormProps {
@@ -78,6 +78,7 @@ export default function EntryEditForm({
         description: string;
         imageUrl: string;
         imagePath: string;
+        images: EntryImage[];
       }> = {
         entrantName: entrantName.trim(),
         title: title.trim(),
@@ -94,6 +95,8 @@ export default function EntryEditForm({
 
         updates.imageUrl = url;
         updates.imagePath = path;
+        // Replace the main photo and keep any additional photos
+        updates.images = [{ url, path }, ...getEntryImages(entry).slice(1)];
 
         // Update entry in Firestore
         await updateEntry(entry.id, updates);
@@ -163,7 +166,7 @@ export default function EntryEditForm({
 
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
-          Current Image
+          Current Main Photo
         </label>
         <div className="relative w-64 h-64 border border-gray-300 rounded-lg overflow-hidden">
           <Image
@@ -184,7 +187,7 @@ export default function EntryEditForm({
             className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
           />
           <label htmlFor="replaceImage" className="text-sm text-gray-700">
-            Replace image
+            Replace main photo
           </label>
         </div>
 

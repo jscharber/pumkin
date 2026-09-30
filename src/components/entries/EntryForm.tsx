@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
-import ImageUpload from '@/components/ui/ImageUpload';
+import MultiImageUpload from '@/components/ui/MultiImageUpload';
 import { useToast } from '@/context/ToastContext';
 import { uploadEntryImage, resizeImage } from '@/lib/storage';
-import { createEntry } from '@/lib/db/entries';
+import { createEntry, MAX_ENTRY_IMAGES } from '@/lib/db/entries';
 
 interface EntryFormProps {
   contestId: string;
@@ -21,13 +21,15 @@ export default function EntryForm({ contestId }: EntryFormProps) {
   const [entrantName, setEntrantName] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [contactInfo, setContactInfo] = useState('');
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [errors, setErrors] = useState<{
     entrantName?: string;
     title?: string;
     description?: string;
+    contactInfo?: string;
     image?: string;
   }>({});
 
@@ -50,8 +52,14 @@ export default function EntryForm({ contestId }: EntryFormProps) {
       newErrors.description = 'Description must be 500 characters or less';
     }
 
-    if (!imageFile) {
-      newErrors.image = 'Image is required';
+    if (contactInfo.length > 500) {
+      newErrors.contactInfo = 'Contact information must be 500 characters or less';
+    }
+
+    if (imageFiles.length === 0) {
+      newErrors.image = 'At least one photo is required';
+    } else if (imageFiles.length > MAX_ENTRY_IMAGES) {
+      newErrors.image = `You can upload up to ${MAX_ENTRY_IMAGES} photos`;
     }
 
     setErrors(newErrors);
@@ -66,18 +74,16 @@ export default function EntryForm({ contestId }: EntryFormProps) {
       return;
     }
 
-    if (!imageFile) {
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // Resize image if needed
-      const resizedImage = await resizeImage(imageFile, 1920);
-
-      // Upload image to Firebase Storage
-      const { url, path } = await uploadEntryImage(contestId, resizedImage);
+      // Resize and upload photos in parallel, keeping their order
+      const images = await Promise.all(
+        imageFiles.map(async (file) => {
+          const resizedImage = await resizeImage(file, 1920);
+          return uploadEntryImage(contestId, resizedImage);
+        })
+      );
 
       // Create entry in Firestore
       await createEntry(
@@ -85,15 +91,17 @@ export default function EntryForm({ contestId }: EntryFormProps) {
         entrantName.trim(),
         title.trim(),
         description.trim(),
-        url,
-        path
+        images[0].url,
+        images[0].path,
+        false,
+        { images, contactInfo: contactInfo.trim() }
       );
 
       showToast('Entry submitted successfully!', 'success');
 
-      // Redirect to home page
+      // Redirect to the gallery to see the new entry
       setTimeout(() => {
-        router.push('/');
+        router.push('/gallery');
       }, 1500);
     } catch (error) {
       console.error('Error submitting entry:', error);
@@ -142,9 +150,26 @@ export default function EntryForm({ contestId }: EntryFormProps) {
         disabled={loading}
       />
 
-      <ImageUpload
-        onImageSelect={setImageFile}
+      <Textarea
+        label="Your Contact Information (Optional)"
+        value={contactInfo}
+        onChange={(e) => setContactInfo(e.target.value)}
+        placeholder="Email or phone number so we can reach you if you win"
+        rows={2}
+        maxLength={500}
+        error={errors.contactInfo}
+        disabled={loading}
+      />
+      <p className="-mt-4 text-xs text-gray-500">
+        Only visible to contest organizers.
+      </p>
+
+      <MultiImageUpload
+        files={imageFiles}
+        onChange={setImageFiles}
+        maxFiles={MAX_ENTRY_IMAGES}
         error={errors.image}
+        disabled={loading}
       />
 
       <div className="flex gap-4">

@@ -28,6 +28,13 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
+    // Entry contact info: anyone can add it with their entry, only admins can read it
+    match /entryContacts/{entryId} {
+      allow create: if request.resource.data.contactInfo is string
+                    && request.resource.data.contactInfo.size() <= 500;
+      allow read, update, delete: if request.auth != null;
+    }
+
     // Votes: public read, public create (one per visitor/category), no update/delete
     match /votes/{voteId} {
       allow read: if true;
