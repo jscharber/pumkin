@@ -44,7 +44,7 @@ export default function VotePage() {
             <p className="text-gray-600">
               Failed to load contest information. Please try again later.
             </p>
-            <Link href="/" className="mt-4 inline-block">
+            <Link href="/gallery" className="mt-4 inline-block">
               <Button>Back to Gallery</Button>
             </Link>
           </div>
@@ -64,7 +64,7 @@ export default function VotePage() {
             <p className="text-gray-600 mb-6">
               There is no active contest at this time. Check back later!
             </p>
-            <Link href="/">
+            <Link href="/gallery">
               <Button>View Past Contests</Button>
             </Link>
           </div>
@@ -94,7 +94,7 @@ export default function VotePage() {
                 There are no entries to vote for yet. Check back after the
                 submission period!
               </p>
-              <Link href="/">
+              <Link href="/gallery">
                 <Button>Back to Gallery</Button>
               </Link>
             </div>
@@ -164,7 +164,7 @@ export default function VotePage() {
 
         {/* Back to Gallery Link */}
         <div className="text-center mt-8">
-          <Link href="/">
+          <Link href="/gallery">
             <Button variant="outline">Back to Gallery</Button>
           </Link>
         </div>

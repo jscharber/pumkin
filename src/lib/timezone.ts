@@ -14,6 +14,10 @@ export const TIME_ZONE_OPTIONS: { value: string; label: string }[] = [
   { value: 'UTC', label: 'UTC' },
 ];
 
+export function getContestTimeZone(contest: { timeZone?: string }): string {
+  return contest.timeZone || DEFAULT_TIME_ZONE;
+}
+
 export function getBrowserTimeZone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE;

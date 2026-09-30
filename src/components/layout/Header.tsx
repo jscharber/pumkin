@@ -12,6 +12,9 @@ export default function Header() {
             </Link>
             <div className="flex gap-6">
               <Link href="/" className="hover:text-accent transition-colors">
+                Home
+              </Link>
+              <Link href="/gallery" className="hover:text-accent transition-colors">
                 Gallery
               </Link>
               <Link href="/vote" className="hover:text-accent transition-colors">

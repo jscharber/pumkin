@@ -1,86 +1,86 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Timestamp } from 'firebase/firestore';
 import { useActiveContest } from '@/hooks/useContest';
-import { useEntries } from '@/hooks/useEntries';
-import { useCategories } from '@/hooks/useCategories';
 import Container from '@/components/layout/Container';
-import EntryGrid from '@/components/entries/EntryGrid';
-import VotingSection from '@/components/voting/VotingSection';
-import TopThreeLeaderboard from '@/components/voting/TopThreeLeaderboard';
-import YearFilter from '@/components/gallery/YearFilter';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Link from 'next/link';
-import { getAllContests, getContestById, getSubmissionStatus } from '@/lib/db/contests';
-import { Contest } from '@/types';
+import { formatDateTimeInZone, getContestTimeZone } from '@/lib/timezone';
+
+interface DateWindowProps {
+  title: string;
+  start?: Timestamp;
+  end?: Timestamp;
+  timeZone: string;
+}
+
+function DateWindow({ title, start, end, timeZone }: DateWindowProps) {
+  return (
+    <Card className="p-6">
+      <h2 className="text-lg font-semibold text-primary mb-3">{title}</h2>
+      {start && end ? (
+        <dl className="space-y-2 text-gray-700">
+          <div>
+            <dt className="text-sm font-medium text-gray-500">Opens</dt>
+            <dd>{formatDateTimeInZone(start.toDate(), timeZone)}</dd>
+          </div>
+          <div>
+            <dt className="text-sm font-medium text-gray-500">Closes</dt>
+            <dd>{formatDateTimeInZone(end.toDate(), timeZone)}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p className="text-gray-600">Dates coming soon!</p>
+      )}
+    </Card>
+  );
+}
+
+function TextSection({ title, body }: { title: string; body?: string }) {
+  if (!body?.trim()) {
+    return null;
+  }
+
+  return (
+    <section>
+      <h2 className="text-2xl font-semibold mb-3">{title}</h2>
+      <p className="text-gray-700 whitespace-pre-line leading-relaxed">{body}</p>
+    </section>
+  );
+}
 
 export default function Home() {
-  const { contest: activeContest, loading: contestLoading } = useActiveContest();
-  const [allContests, setAllContests] = useState<Contest[]>([]);
-  const [selectedContestId, setSelectedContestId] = useState<string | null>(null);
-  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const { contest, loading, error } = useActiveContest();
 
-  const { entries, loading: entriesLoading } = useEntries(selectedContestId);
-  const { categories, loading: categoriesLoading } = useCategories(
-    selectedContestId
-  );
-
-  const loading = contestLoading || entriesLoading;
-  const isViewingPastYear = selectedContestId !== activeContest?.id;
-  const submissionStatus = activeContest ? getSubmissionStatus(activeContest) : null;
-
-  useEffect(() => {
-    const loadContests = async () => {
-      const contests = await getAllContests();
-      setAllContests(contests);
-    };
-    loadContests();
-  }, []);
-
-  useEffect(() => {
-    if (activeContest && !selectedContestId) {
-      setSelectedContestId(activeContest.id);
-      setSelectedContest(activeContest);
-    }
-  }, [activeContest, selectedContestId]);
-
-  useEffect(() => {
-    const loadSelectedContest = async () => {
-      if (selectedContestId) {
-        const contest = await getContestById(selectedContestId);
-        setSelectedContest(contest);
-      }
-    };
-    loadSelectedContest();
-  }, [selectedContestId]);
-
-  const handleYearChange = (contestId: string | null) => {
-    setSelectedContestId(contestId);
-  };
-
-  if (contestLoading) {
+  if (loading) {
     return (
       <Container className="py-12">
         <div className="animate-pulse space-y-8">
-          <div className="h-12 bg-gray-200 rounded w-1/2 mx-auto"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
+          <div className="h-64 bg-gray-200 rounded-lg"></div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="h-32 bg-gray-200 rounded-lg"></div>
+            <div className="h-32 bg-gray-200 rounded-lg"></div>
+          </div>
+          <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2"></div>
         </div>
       </Container>
     );
   }
 
-  if (!activeContest && !selectedContest) {
+  if (error || !contest) {
     return (
       <Container className="py-12">
         <Card className="max-w-2xl mx-auto p-8">
           <div className="text-center">
             <div className="text-6xl mb-4">🎃</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-4">
-              No Active Contest
+              {error ? 'Something Went Wrong' : 'No Active Contest'}
             </h1>
             <p className="text-gray-600">
-              There is no active contest at this time. Check back later!
+              {error
+                ? 'We could not load the contest details. Please try again later.'
+                : 'There is no active contest at this time. Check back later!'}
             </p>
           </div>
         </Card>
@@ -88,92 +88,47 @@ export default function Home() {
     );
   }
 
-  const scrollToVoting = () => {
-    const votingSection = document.getElementById('voting-section');
-    if (votingSection) {
-      votingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
+  const timeZone = getContestTimeZone(contest);
 
   return (
     <Container className="py-12">
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold mb-2">
-          {selectedContest?.name || 'Pumpkin Carving Contest'}
-        </h1>
-        <p className="text-gray-600 mb-6">
-          {isViewingPastYear
-            ? 'Browse past entries for inspiration!'
-            : 'Browse all entries and vote for your favorites!'}
-        </p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          {!isViewingPastYear && entries.length > 0 && (
-            <Button
-              size="lg"
-              onClick={scrollToVoting}
-            >
-              Vote Now
-            </Button>
-          )}
-          <Link href="/submit">
-            <Button
-              size="lg"
-              disabled={isViewingPastYear}
-              variant={isViewingPastYear ? 'outline' : 'secondary'}
-            >
-              {isViewingPastYear
-                ? 'Submissions Closed for This Year'
-                : submissionStatus === 'not-started'
-                ? `Submissions Open ${activeContest?.submissionStart.toDate().toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  })}`
-                : submissionStatus === 'open'
-                ? 'Submit Your Entry'
-                : 'Submissions Closed'}
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Top 3 Leaderboard - Only show for active contest with entries */}
-      {!isViewingPastYear && entries.length > 0 && selectedContestId && (
-        <TopThreeLeaderboard contestId={selectedContestId} />
-      )}
-
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold">
-            Gallery ({entries.length} {entries.length === 1 ? 'Entry' : 'Entries'})
-          </h2>
-          {allContests.length > 1 && (
-            <YearFilter
-              contests={allContests}
-              selectedContestId={selectedContestId}
-              onSelect={handleYearChange}
+      <div className="max-w-4xl mx-auto space-y-10">
+        {contest.headerImageUrl ? (
+          <>
+            <h1 className="sr-only">{contest.name}</h1>
+            <Image
+              src={contest.headerImageUrl}
+              alt={contest.name}
+              width={2400}
+              height={800}
+              sizes="(max-width: 896px) 100vw, 896px"
+              className="w-full h-auto rounded-lg shadow-md"
+              priority
             />
-          )}
-        </div>
-      </div>
+          </>
+        ) : (
+          <h1 className="text-4xl font-bold text-center">{contest.name}</h1>
+        )}
 
-      <EntryGrid entries={entries} loading={entriesLoading} />
-
-      {!isViewingPastYear && entries.length > 0 && categories.length > 0 && (
-        <div id="voting-section" className="mt-16">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-bold mb-2">Cast Your Votes</h2>
-            <p className="text-gray-600">
-              Vote for your favorite entry in each category
-            </p>
-          </div>
-
-          <VotingSection
-            contestId={selectedContestId!}
-            categories={categories}
-            entries={entries}
+        <div className="grid gap-6 md:grid-cols-2">
+          <DateWindow
+            title="Submissions"
+            start={contest.submissionStart}
+            end={contest.submissionEnd}
+            timeZone={timeZone}
+          />
+          <DateWindow
+            title="Voting"
+            start={contest.votingStart}
+            end={contest.votingEnd}
+            timeZone={timeZone}
           />
         </div>
-      )}
+
+        <TextSection title="Welcome" body={contest.introMessage} />
+        <TextSection title="Instructions and Rules" body={contest.instructionsAndRules} />
+        <TextSection title="Contact Information" body={contest.contactInfo} />
+      </div>
     </Container>
   );
 }
