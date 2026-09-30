@@ -9,6 +9,7 @@ import Image from 'next/image';
 
 interface TopThreeLeaderboardProps {
   contestId: string;
+  emptyMessage?: string;
 }
 
 interface LeaderboardEntry {
@@ -19,6 +20,7 @@ interface LeaderboardEntry {
 
 export default function TopThreeLeaderboard({
   contestId,
+  emptyMessage = 'No votes yet! Be the first to vote for your favorite pumpkins.',
 }: TopThreeLeaderboardProps) {
   const [topEntries, setTopEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,7 @@ export default function TopThreeLeaderboard({
         </h2>
         <Card className="p-8 max-w-2xl mx-auto">
           <p className="text-center text-gray-600">
-            No votes yet! Be the first to vote for your favorite pumpkins.
+            {emptyMessage}
           </p>
         </Card>
       </div>

@@ -170,3 +170,12 @@ export function getVotingStatus(contest: Contest): VotingStatus {
     return 'closed';
   }
 }
+
+// Results are hidden until voting ends. Contests without a voting end date
+// (created before voting dates existed) are released once they are no longer active.
+export function areResultsReleased(contest: Contest): boolean {
+  if (contest.votingEnd) {
+    return Timestamp.now().toMillis() > contest.votingEnd.toMillis();
+  }
+  return !contest.isActive;
+}

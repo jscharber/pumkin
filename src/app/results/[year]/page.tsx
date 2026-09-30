@@ -7,8 +7,12 @@ import Card from '@/components/ui/Card';
 import YearSelector from '@/components/results/YearSelector';
 import CategoryWinner from '@/components/results/CategoryWinner';
 import Leaderboard from '@/components/results/Leaderboard';
+import ResultsPending from '@/components/results/ResultsPending';
+import ResultsThankYou from '@/components/results/ResultsThankYou';
+import TopThreeLeaderboard from '@/components/voting/TopThreeLeaderboard';
+import { useResultsReleased } from '@/hooks/useResultsReleased';
 import { Contest, Entry, Category, CategoryResult, LeaderboardEntry } from '@/types';
-import { getAllContests, getContestById } from '@/lib/db/contests';
+import { getAllContests } from '@/lib/db/contests';
 import { getEntriesForContest } from '@/lib/db/entries';
 import { getCategoriesForContest } from '@/lib/db/categories';
 import { calculateCategoryResults, calculateLeaderboard } from '@/lib/results';
@@ -26,6 +30,7 @@ export default function HistoricalResultsPage({
   const [categoryResults, setCategoryResults] = useState<CategoryResult[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const released = useResultsReleased(selectedContest);
 
   useEffect(() => {
     loadContests();
@@ -33,7 +38,10 @@ export default function HistoricalResultsPage({
 
   useEffect(() => {
     if (contests.length > 0) {
-      const contest = contests.find((c) => c.id === params.year);
+      // Links use the year; the year selector uses the contest ID
+      const contest =
+        contests.find((c) => c.id === params.year) ||
+        contests.find((c) => String(c.year) === params.year);
       if (contest) {
         loadContestData(contest);
       } else {
@@ -41,6 +49,31 @@ export default function HistoricalResultsPage({
       }
     }
   }, [contests, params.year]);
+
+  // Calculate once data is loaded and results are released (including when voting ends while viewing)
+  useEffect(() => {
+    if (!released || !selectedContest || !entries.length || !categories.length) {
+      return;
+    }
+
+    const calculateResults = async () => {
+      try {
+        const results = await Promise.all(
+          categories.map((category) =>
+            calculateCategoryResults(selectedContest.id, category, entries)
+          )
+        );
+        setCategoryResults(results);
+        setLeaderboard(
+          await calculateLeaderboard(selectedContest.id, categories, entries)
+        );
+      } catch (error) {
+        console.error('Error calculating results:', error);
+      }
+    };
+
+    calculateResults();
+  }, [released, selectedContest, entries, categories]);
 
   const loadContests = async () => {
     try {
@@ -64,23 +97,6 @@ export default function HistoricalResultsPage({
 
       setEntries(entriesData);
       setCategories(categoriesData);
-
-      if (entriesData.length > 0 && categoriesData.length > 0) {
-        // Calculate results
-        const results = await Promise.all(
-          categoriesData.map((category) =>
-            calculateCategoryResults(contest.id, category, entriesData)
-          )
-        );
-        setCategoryResults(results);
-
-        const board = await calculateLeaderboard(
-          contest.id,
-          categoriesData,
-          entriesData
-        );
-        setLeaderboard(board);
-      }
     } catch (error) {
       console.error('Error loading contest data:', error);
     } finally {
@@ -140,7 +156,9 @@ export default function HistoricalResultsPage({
         </p>
       </div>
 
-      {entries.length === 0 ? (
+      {!released ? (
+        <ResultsPending contest={selectedContest} />
+      ) : entries.length === 0 ? (
         <Card className="max-w-2xl mx-auto p-8">
           <div className="text-center">
             <div className="text-6xl mb-4">🎃</div>
@@ -154,6 +172,15 @@ export default function HistoricalResultsPage({
         </Card>
       ) : (
         <>
+          <ResultsThankYou />
+
+          <div className="mb-12">
+            <TopThreeLeaderboard
+              contestId={selectedContest.id}
+              emptyMessage="No votes were cast."
+            />
+          </div>
+
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Overall Leaderboard</h2>
             <Leaderboard leaderboard={leaderboard} limit={10} />

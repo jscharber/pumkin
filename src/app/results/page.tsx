@@ -8,6 +8,10 @@ import Container from '@/components/layout/Container';
 import Card from '@/components/ui/Card';
 import CategoryWinner from '@/components/results/CategoryWinner';
 import Leaderboard from '@/components/results/Leaderboard';
+import ResultsPending from '@/components/results/ResultsPending';
+import ResultsThankYou from '@/components/results/ResultsThankYou';
+import TopThreeLeaderboard from '@/components/voting/TopThreeLeaderboard';
+import { useResultsReleased } from '@/hooks/useResultsReleased';
 import { CategoryResult, LeaderboardEntry, Contest } from '@/types';
 import { calculateCategoryResults, calculateLeaderboard } from '@/lib/results';
 import { getAllContests } from '@/lib/db/contests';
@@ -24,6 +28,7 @@ export default function ResultsPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [calculating, setCalculating] = useState(false);
   const [allContests, setAllContests] = useState<Contest[]>([]);
+  const released = useResultsReleased(contest);
 
   useEffect(() => {
     const loadContests = async () => {
@@ -34,7 +39,7 @@ export default function ResultsPage() {
   }, []);
 
   useEffect(() => {
-    if (!contest || !categories.length || !entries.length) {
+    if (!released || !contest || !categories.length || !entries.length) {
       return;
     }
 
@@ -60,7 +65,7 @@ export default function ResultsPage() {
     };
 
     calculateResults();
-  }, [contest, categories, entries]);
+  }, [released, contest, categories, entries]);
 
   const loading = contestLoading || entriesLoading || categoriesLoading || calculating;
 
@@ -94,6 +99,37 @@ export default function ResultsPage() {
 
   const pastContests = allContests.filter((c) => c.id !== contest.id);
 
+  const pastYearsCard = pastContests.length > 0 && (
+    <Card className="mb-8 p-6">
+      <h3 className="text-lg font-semibold mb-4">Past Years</h3>
+      <div className="flex flex-wrap gap-2">
+        {pastContests.map((pastContest) => (
+          <Link
+            key={pastContest.id}
+            href={`/results/${pastContest.year}`}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 hover:text-gray-900 font-medium"
+          >
+            {pastContest.year}
+          </Link>
+        ))}
+      </div>
+    </Card>
+  );
+
+  if (!released) {
+    return (
+      <Container className="py-12">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2">{contest.name} - Results</h1>
+        </div>
+        <div className="mb-8">
+          <ResultsPending contest={contest} />
+        </div>
+        {pastYearsCard}
+      </Container>
+    );
+  }
+
   if (entries.length === 0) {
     return (
       <Container className="py-12">
@@ -101,22 +137,7 @@ export default function ResultsPage() {
           <h1 className="text-4xl font-bold mb-2">{contest.name} - Results</h1>
         </div>
 
-        {pastContests.length > 0 && (
-          <Card className="mb-8 p-6">
-            <h3 className="text-lg font-semibold mb-4">Past Years</h3>
-            <div className="flex flex-wrap gap-2">
-              {pastContests.map((pastContest) => (
-                <Link
-                  key={pastContest.id}
-                  href={`/results/${pastContest.year}`}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 hover:text-gray-900 font-medium"
-                >
-                  {pastContest.year}
-                </Link>
-              ))}
-            </div>
-          </Card>
-        )}
+        {pastYearsCard}
 
         <Card className="max-w-2xl mx-auto p-8">
           <div className="text-center">
@@ -143,22 +164,9 @@ export default function ResultsPage() {
         </p>
       </div>
 
-      {pastContests.length > 0 && (
-        <Card className="mb-8 p-6">
-          <h3 className="text-lg font-semibold mb-4">Past Years</h3>
-          <div className="flex flex-wrap gap-2">
-            {pastContests.map((pastContest) => (
-              <Link
-                key={pastContest.id}
-                href={`/results/${pastContest.year}`}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 hover:text-gray-900 font-medium"
-              >
-                {pastContest.year}
-              </Link>
-            ))}
-          </div>
-        </Card>
-      )}
+      <ResultsThankYou />
+
+      {pastYearsCard}
 
       {loading ? (
         <div className="space-y-6">
@@ -168,6 +176,10 @@ export default function ResultsPage() {
         </div>
       ) : (
         <>
+          <div className="mb-12">
+            <TopThreeLeaderboard contestId={contest.id} emptyMessage="No votes were cast." />
+          </div>
+
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Overall Leaderboard</h2>
             <Leaderboard leaderboard={leaderboard} limit={10} />
