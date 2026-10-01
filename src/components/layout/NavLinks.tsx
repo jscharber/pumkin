@@ -8,8 +8,8 @@ const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/gallery', label: 'Gallery' },
   { href: '/inspiration', label: 'Inspiration Gallery' },
-  { href: '/vote', label: 'Vote' },
   { href: '/submit', label: 'Submit Entry' },
+  { href: '/vote', label: 'Vote' },
   { href: '/results', label: 'Results' },
   { href: '/admin', label: 'Admin' },
 ];
