@@ -16,7 +16,9 @@ export default function GalleryPage() {
   const [selectedContestId, setSelectedContestId] = useState<string | null>(null);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
 
-  const { entries, loading: entriesLoading } = useEntries(selectedContestId);
+  const { entries: allEntries, loading: entriesLoading } = useEntries(selectedContestId);
+  // Inspiration images have their own page
+  const entries = allEntries.filter((entry) => !entry.isInspiration);
 
   const loading = contestLoading || entriesLoading;
   const isViewingPastYear = selectedContestId !== activeContest?.id;

@@ -210,3 +210,15 @@ export async function getCompetitionEntries(contestId: string): Promise<Entry[]>
     ...doc.data(),
   })) as Entry[];
 }
+
+// Inspiration images from every contest, newest first
+export async function getAllInspirationEntries(): Promise<Entry[]> {
+  if (!db) throw new Error('Firestore not initialized');
+  // Sorted here rather than with orderBy so no composite index is needed
+  const q = query(collection(db, COLLECTION), where('isInspiration', '==', true));
+  const snapshot = await getDocs(q);
+
+  return (snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Entry[]).sort(
+    (a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0)
+  );
+}

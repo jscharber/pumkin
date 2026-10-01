@@ -1,86 +1,71 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Container from '@/components/layout/Container';
-import EntryGrid from '@/components/entries/EntryGrid';
-import YearFilter from '@/components/gallery/YearFilter';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
 import { Contest, Entry } from '@/types';
 import { getAllContests } from '@/lib/db/contests';
-import { getEntriesForContest } from '@/lib/db/entries';
+import { getAllInspirationEntries } from '@/lib/db/entries';
+
+const ALL_YEARS = 'all';
 
 export default function InspirationPage() {
   const [contests, setContests] = useState<Contest[]>([]);
-  const [selectedContestId, setSelectedContestId] = useState<string | null>(null);
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [images, setImages] = useState<Entry[]>([]);
+  const [selectedContestId, setSelectedContestId] = useState(ALL_YEARS);
+  const [selectedImage, setSelectedImage] = useState<Entry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const loadContests = async () => {
+    const load = async () => {
       try {
-        const data = await getAllContests();
-        setContests(data);
-        // Select the most recent non-active contest by default
-        const pastContests = data.filter((c) => !c.isActive);
-        if (pastContests.length > 0) {
-          setSelectedContestId(pastContests[0].id);
-        }
-      } catch (error) {
-        console.error('Error loading contests:', error);
+        const [contestData, imageData] = await Promise.all([
+          getAllContests(),
+          getAllInspirationEntries(),
+        ]);
+        setContests(contestData);
+        setImages(imageData);
+      } catch (err) {
+        console.error('Error loading inspiration images:', err);
+        setError(true);
       } finally {
         setLoading(false);
       }
     };
-    loadContests();
+    load();
   }, []);
 
-  useEffect(() => {
-    const loadEntries = async () => {
-      if (!selectedContestId) {
-        setEntries([]);
-        return;
-      }
+  const yearFor = (contestId: string) =>
+    contests.find((c) => c.id === contestId)?.year;
 
-      setLoading(true);
-      try {
-        const data = await getEntriesForContest(selectedContestId);
-        setEntries(data);
-      } catch (error) {
-        console.error('Error loading entries:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadEntries();
-  }, [selectedContestId]);
+  // Only offer years that actually have inspiration images (contests are newest first)
+  const yearOptions = [
+    { value: ALL_YEARS, label: 'All Years' },
+    ...contests
+      .filter((c) => images.some((img) => img.contestId === c.id))
+      .map((c) => ({ value: c.id, label: `${c.year}` })),
+  ];
 
-  const selectedContest = contests.find((c) => c.id === selectedContestId);
+  const visibleImages =
+    selectedContestId === ALL_YEARS
+      ? images
+      : images.filter((img) => img.contestId === selectedContestId);
 
-  if (loading && contests.length === 0) {
+  if (loading) {
     return (
       <Container className="py-12">
         <div className="animate-pulse space-y-8">
           <div className="h-12 bg-gray-200 rounded w-1/2 mx-auto"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
-        </div>
-      </Container>
-    );
-  }
-
-  if (contests.length === 0) {
-    return (
-      <Container className="py-12">
-        <Card className="max-w-2xl mx-auto p-8">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎃</div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">
-              No Past Contests
-            </h1>
-            <p className="text-gray-600">
-              Past contest entries will appear here for inspiration once previous years&apos; contests are archived.
-            </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-gray-200 rounded-lg"></div>
+            ))}
           </div>
-        </Card>
+        </div>
       </Container>
     );
   }
@@ -89,44 +74,89 @@ export default function InspirationPage() {
     <Container className="py-12">
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold mb-2">Inspiration Gallery</h1>
-        <p className="text-gray-600 mb-4">
-          Browse past entries from previous years for creative inspiration!
+        <p className="text-gray-600">
+          Need ideas? Browse pumpkins from past contests for creative inspiration!
         </p>
-        {selectedContest && (
-          <p className="text-sm text-gray-500">
-            Viewing: {selectedContest.year}
+      </div>
+
+      {error ? (
+        <Card className="max-w-2xl mx-auto p-8">
+          <p className="text-center text-gray-600">
+            We couldn&apos;t load the inspiration images. Please try again later.
           </p>
-        )}
-      </div>
-
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold">
-            Gallery ({entries.length} {entries.length === 1 ? 'Entry' : 'Entries'})
-          </h2>
-          <YearFilter
-            contests={contests}
-            selectedContestId={selectedContestId}
-            onSelect={setSelectedContestId}
-            showActiveOption={false}
-          />
-        </div>
-      </div>
-
-      {entries.length === 0 ? (
+        </Card>
+      ) : images.length === 0 ? (
         <Card className="max-w-2xl mx-auto p-8">
           <div className="text-center">
             <div className="text-6xl mb-4">🎃</div>
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              No Entries
+              No Inspiration Images Yet
             </h2>
-            <p className="text-gray-600">
-              This contest has no entries yet.
-            </p>
+            <p className="text-gray-600">Check back soon for ideas from past years!</p>
           </div>
         </Card>
       ) : (
-        <EntryGrid entries={entries} loading={loading} />
+        <>
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <h2 className="text-2xl font-semibold">
+              {visibleImages.length} {visibleImages.length === 1 ? 'Image' : 'Images'}
+            </h2>
+            {yearOptions.length > 2 && (
+              <div className="max-w-xs">
+                <Select
+                  label="Year"
+                  value={selectedContestId}
+                  onChange={(e) => setSelectedContestId(e.target.value)}
+                  options={yearOptions}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {visibleImages.map((img) => (
+              <button
+                key={img.id}
+                type="button"
+                onClick={() => setSelectedImage(img)}
+                className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden shadow focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label={`View larger${yearFor(img.contestId) ? ` (${yearFor(img.contestId)})` : ''}`}
+              >
+                <Image
+                  src={img.imageUrl}
+                  alt="Pumpkin carving inspiration"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
+                {yearFor(img.contestId) && (
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 text-xs font-semibold bg-black bg-opacity-60 text-white rounded">
+                    {yearFor(img.contestId)}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {selectedImage && (
+        <Modal
+          isOpen={true}
+          onClose={() => setSelectedImage(null)}
+          title={`Inspiration${yearFor(selectedImage.contestId) ? ` from ${yearFor(selectedImage.contestId)}` : ''}`}
+        >
+          <div className="relative w-full h-[70vh] bg-gray-100 rounded-lg overflow-hidden">
+            <Image
+              src={selectedImage.imageUrl}
+              alt="Pumpkin carving inspiration"
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 900px"
+              priority
+            />
+          </div>
+        </Modal>
       )}
     </Container>
   );
