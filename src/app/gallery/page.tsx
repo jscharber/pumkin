@@ -83,13 +83,21 @@ export default function GalleryPage() {
     <Container className="py-12">
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold mb-2">
-          {selectedContest?.name || 'Pumpkin Carving Contest'}
+          {selectedContest?.name || 'Pumpkin Contest'}
         </h1>
-        <p className="text-gray-600">
-          {isViewingPastYear
-            ? 'Browse past entries for inspiration!'
-            : 'Browse all of this year\'s entries!'}
-        </p>
+        {isViewingPastYear ? (
+          <p className="text-gray-600">Browse past entries for inspiration!</p>
+        ) : (
+          <div className="max-w-2xl mx-auto mt-4">
+            <p className="text-xl font-bold text-primary">
+              SPY ON THE COMPETITION! 🕵🏽
+            </p>
+            <p className="text-gray-600 mt-1">
+              Want to see what other pumpkin geniuses are up to? Sneak a peek at
+              the entries rolling in below!
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mb-8">

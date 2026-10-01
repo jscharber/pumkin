@@ -8,7 +8,7 @@ export default function Footer() {
       <Container>
         <div className="py-6 text-center">
           <p className="text-sm">
-            &copy; {currentYear} Pumpkin Carving Contest. All rights reserved.
+            &copy; {currentYear} Pumpkin Contest. All rights reserved.
           </p>
         </div>
       </Container>

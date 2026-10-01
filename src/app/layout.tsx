@@ -9,7 +9,7 @@ import Footer from '@/components/layout/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Pumpkin Carving Contest',
+  title: 'Pumpkin Contest',
   description: 'Annual pumpkin carving contest with voting and results',
 };
 

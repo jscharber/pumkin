@@ -12,10 +12,9 @@ export default function ResultsPending({ contest }: { contest: Contest }) {
       <div className="text-center">
         <div className="text-6xl mb-4">🎃</div>
         <p className="text-lg text-gray-700 leading-relaxed">
-          Hold onto your pumpkins! 🎃 Every vote is currently being counted, so
-          hang tight! Check back right after{' '}
-          <span className="font-semibold">{votingEnd}</span> to see who takes
-          home the crown! 🏆
+          Hold onto your pumpkins! 🎃 Check back right after{' '}
+          <span className="font-semibold">{votingEnd}</span> to see winners of
+          each category, runners-up, and who takes home the crown! 🏆
         </p>
       </div>
     </Card>
