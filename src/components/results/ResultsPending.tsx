@@ -1,4 +1,5 @@
 import Card from '@/components/ui/Card';
+import Countdown from '@/components/ui/Countdown';
 import { Contest } from '@/types';
 import { formatDateTimeInZone, getContestTimeZone } from '@/lib/timezone';
 
@@ -16,6 +17,11 @@ export default function ResultsPending({ contest }: { contest: Contest }) {
           <span className="font-semibold">{votingEnd}</span> to see winners of
           each category, runners-up, and who takes home the crown! 🏆
         </p>
+        {contest.votingEnd && (
+          <div className="mt-8">
+            <Countdown target={contest.votingEnd.toDate()} label="Voting closes in" />
+          </div>
+        )}
       </div>
     </Card>
   );

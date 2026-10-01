@@ -97,19 +97,19 @@ export default function VotePage() {
                 </span>
                 !
               </p>
+              <div className="mb-6">
+                <Countdown
+                  target={contest.votingStart.toDate()}
+                  label="Voting begins in"
+                />
+              </div>
               {contest.votingEnd && (
-                <div className="mb-8">
-                  <p className="text-gray-700 mb-4">
-                    Voting closes on{' '}
-                    <span className="font-semibold">
-                      {formatDateTimeInZone(contest.votingEnd.toDate(), timeZone)}
-                    </span>
-                  </p>
-                  <Countdown
-                    target={contest.votingEnd.toDate()}
-                    label="Voting closes in"
-                  />
-                </div>
+                <p className="text-gray-700 mb-8">
+                  Voting closes on{' '}
+                  <span className="font-semibold">
+                    {formatDateTimeInZone(contest.votingEnd.toDate(), timeZone)}
+                  </span>
+                </p>
               )}
               <Link href="/gallery">
                 <Button>Browse the Gallery</Button>
@@ -200,14 +200,6 @@ export default function VotePage() {
               </>
             )}
           </p>
-          {contest.votingEnd && (
-            <div className="mt-6">
-              <Countdown
-                target={contest.votingEnd.toDate()}
-                label="Voting closes in"
-              />
-            </div>
-          )}
         </div>
 
         {/* Voting Instructions */}
