@@ -7,9 +7,7 @@ import Container from '@/components/layout/Container';
 import EntryGrid from '@/components/entries/EntryGrid';
 import YearFilter from '@/components/gallery/YearFilter';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Link from 'next/link';
-import { getAllContests, getContestById, getSubmissionStatus } from '@/lib/db/contests';
+import { getAllContests, getContestById } from '@/lib/db/contests';
 import { Contest } from '@/types';
 
 export default function GalleryPage() {
@@ -22,7 +20,6 @@ export default function GalleryPage() {
 
   const loading = contestLoading || entriesLoading;
   const isViewingPastYear = selectedContestId !== activeContest?.id;
-  const submissionStatus = activeContest ? getSubmissionStatus(activeContest) : null;
 
   useEffect(() => {
     const loadContests = async () => {
@@ -88,31 +85,11 @@ export default function GalleryPage() {
         <h1 className="text-4xl font-bold mb-2">
           {selectedContest?.name || 'Pumpkin Carving Contest'}
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600">
           {isViewingPastYear
             ? 'Browse past entries for inspiration!'
             : 'Browse all of this year\'s entries!'}
         </p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <Link href="/submit">
-            <Button
-              size="lg"
-              disabled={isViewingPastYear}
-              variant={isViewingPastYear ? 'outline' : 'secondary'}
-            >
-              {isViewingPastYear
-                ? 'Submissions Closed for This Year'
-                : submissionStatus === 'not-started'
-                ? `Submissions Open ${activeContest?.submissionStart.toDate().toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  })}`
-                : submissionStatus === 'open'
-                ? 'Submit Your Entry'
-                : 'Submissions Closed'}
-            </Button>
-          </Link>
-        </div>
       </div>
 
       <div className="mb-8">
