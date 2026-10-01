@@ -64,6 +64,9 @@ export default function ContestForm({
   const [instructionsAndRules, setInstructionsAndRules] = useState(
     contest?.instructionsAndRules || ''
   );
+  const [categoriesText, setCategoriesText] = useState(
+    contest?.categoriesText || ''
+  );
   const [contactInfo, setContactInfo] = useState(contest?.contactInfo || '');
   const [headerFile, setHeaderFile] = useState<File | null>(null);
   const [removeHeader, setRemoveHeader] = useState(false);
@@ -121,6 +124,7 @@ export default function ContestForm({
         votingEnd: toTimestamp(votingEnd),
         introMessage: introMessage.trim(),
         instructionsAndRules: instructionsAndRules.trim(),
+        categoriesText: categoriesText.trim(),
         contactInfo: contactInfo.trim(),
         headerImageUrl: removeHeader ? null : contest?.headerImageUrl ?? null,
         headerImagePath: removeHeader ? null : contest?.headerImagePath ?? null,
@@ -301,6 +305,16 @@ export default function ContestForm({
         rows={6}
         maxLength={10000}
         placeholder="How to enter, what's allowed, how voting works..."
+        disabled={loading}
+      />
+
+      <Textarea
+        label="Categories"
+        value={categoriesText}
+        onChange={(e) => setCategoriesText(e.target.value)}
+        rows={5}
+        maxLength={10000}
+        placeholder="The categories you can vote in this year..."
         disabled={loading}
       />
 

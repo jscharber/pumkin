@@ -127,6 +127,7 @@ export default function Home() {
 
         <TextSection title="Welcome" body={contest.introMessage} />
         <TextSection title="Instructions and Rules" body={contest.instructionsAndRules} />
+        <TextSection title="Categories" body={contest.categoriesText} />
         <TextSection title="Contact Information" body={contest.contactInfo} />
       </div>
     </Container>

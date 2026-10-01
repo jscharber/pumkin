@@ -8,6 +8,7 @@ import { getSubmissionStatus, getDaysUntilSubmissionStart, getDaysUntilSubmissio
 import { useState, useEffect } from 'react';
 import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { formatDateTimeInZone, getContestTimeZone } from '@/lib/timezone';
 
 export default function AdminDashboard() {
   const { contest, loading: contestLoading } = useActiveContest();
@@ -165,8 +166,25 @@ export default function AdminDashboard() {
                 Submission Window
               </dt>
               <dd className="text-gray-900">
-                {contest.submissionStart.toDate().toLocaleDateString()} -{' '}
-                {contest.submissionEnd.toDate().toLocaleDateString()}
+                {formatDateTimeInZone(contest.submissionStart.toDate(), getContestTimeZone(contest))} -{' '}
+                {formatDateTimeInZone(contest.submissionEnd.toDate(), getContestTimeZone(contest))}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-500">
+                Voting Window
+              </dt>
+              <dd className="text-gray-900">
+                {contest.votingStart && contest.votingEnd ? (
+                  <>
+                    {formatDateTimeInZone(contest.votingStart.toDate(), getContestTimeZone(contest))} -{' '}
+                    {formatDateTimeInZone(contest.votingEnd.toDate(), getContestTimeZone(contest))}
+                  </>
+                ) : (
+                  <span className="text-amber-700">
+                    Not set - add voting dates in Contest Management
+                  </span>
+                )}
               </dd>
             </div>
             <div>

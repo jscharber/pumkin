@@ -13,6 +13,7 @@ export interface Contest {
   headerImagePath?: string | null; // Storage path for deletion
   introMessage?: string;
   instructionsAndRules?: string;
+  categoriesText?: string; // Shown on the Home page under Instructions and Rules
   contactInfo?: string;
   isActive: boolean;
   createdAt: Timestamp;

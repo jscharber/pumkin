@@ -19,6 +19,7 @@ interface Contest {
   headerImagePath?: string | null; // Storage path for deletion (contests/{id}/...)
   introMessage?: string;   // Shown on the Home page
   instructionsAndRules?: string; // Shown on the Home page
+  categoriesText?: string; // Shown on the Home page under Instructions and Rules
   contactInfo?: string;    // Shown on the Home page
   isActive: boolean;       // Only one should be true
   createdAt: Timestamp;
